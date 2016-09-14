@@ -1,23 +1,16 @@
-from flask import Flask, render_template
-from flask_script import Manager
-from flask_bootstrap import Bootstrap
+#!/usr/bin/env python3
 
-app = Flask(__name__)
+from flask_script import Manager, Shell
+
+from app import create_app
+
+app = create_app()
 manager = Manager(app)
-bootstrap = Bootstrap(app)
 
+def make_shell_context():
+    return dict(app=app)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+manager.add_command("shell", Shell(make_context=make_shell_context))
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html'), 404
-    
-@app.errorhandler(500)
-def internal_server_error(e):
-    return render_template('500.html'), 500 
-    
 if __name__ == '__main__':
     manager.run()
