@@ -1,0 +1,33 @@
+{% extends "bootstrap/base.html" %}
+
+{% block doc %}
+<!doctype html>
+<html lang="zh-cn">
+<head>
+  {% block head %}
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+  <meta name="renderer" content="webkit" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hidden Island {% block title %}{% endblock %}</title>
+  <meta name="description" content="hidden island">
+  <link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico')}}">
+  <link rel="icon" type='image/x-icon' href="{{ url_for('static', filename='images/favicon.ico')}}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css')}}">
+  <!--[if lt IE 9]>
+  <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+  <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+  {% endblock %}
+</head>
+<body style="position: relative; padding-top: 60px;">
+  {% block content %}
+  {% include '_includes/nav.html' %}
+  {% endblock %}
+
+  {% block js %} 
+  {% include '_includes/js.html' %} 
+  {% endblock %}
+</body>
+</html>
+{% endblock %}
