@@ -4,6 +4,10 @@
 {% block head %}{{ super() }}{% endblock %}
 
 {% block content %}
-{{ super() }}
 <h1>hello world!</h1>
+<ul>
+  {% for post in post_list %}
+  <li><a href="/templates/post/{{ post }}">{{ post }}</a></li>
+  {% endfor %}
+</ul>
 {% endblock %}
