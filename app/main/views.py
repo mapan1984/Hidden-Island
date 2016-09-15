@@ -1,18 +1,12 @@
 import os
 
-
 from flask import render_template
 from . import main
 
-
-basedir = os.path.abspath(os.path.dirname(__file__))
-targetdir = "\\".join(basedir.split('\\')[0:-1] + ['templates', 'post'])
+base_dir = os.path.abspath(os.path.dirname(__file__))
+articles_dir = "\\".join(base_dir.split('\\')[0:-2] + ['articles'])
 
 @main.route('/')
 def index():
-    post_list = os.listdir(targetdir)
-    return render_template('index.html', post_list=post_list)
-
-@main.route('/templates/post/<page_name>')
-def page(page_name):
-    return render_template('post/'+page_name)
+    articles_list = os.listdir(articles_dir)
+    return render_template('index.html', articles_list=articles_list)

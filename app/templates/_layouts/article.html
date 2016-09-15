@@ -1,0 +1,13 @@
+{% extends "_layouts/default.html" %}
+
+{% block title %}{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/syntax.css')}}">
+{% endblock %}
+
+{% block content %}
+<h1>hello world!</h1>
+{# 渲染文章内容，不转义 #}
+{{ article_content|safe }}
+{% endblock %}
