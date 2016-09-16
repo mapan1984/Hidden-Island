@@ -1,12 +1,9 @@
 import os
 
-from flask import render_template
+from flask import render_template, current_app
 import markdown
 
 from . import article
-
-base_dir = os.path.abspath(os.path.dirname(__file__))
-articles_dir = '\\'.join(base_dir.split('\\')[0:-2] + ['articles'])
 
 # markdown
 md = markdown.Markdown(
@@ -21,7 +18,8 @@ md = markdown.Markdown(
 @article.route('/article/<article_name>')
 def page(article_name):
     # 解析markdown文件
-    with open(articles_dir+'\\'+article_name, "r") as fd:
+    article_path = os.path.join(current_app.config['ARTICLES_DIR'], article_name)
+    with open(article_path, "r") as fd:
         article_content_html = md.convert(fd.read())
     return render_template('_layouts/article.html', 
                            article_content=article_content_html)
