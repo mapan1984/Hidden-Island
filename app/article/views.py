@@ -20,6 +20,8 @@ md = markdown.Markdown(
 
 @article.route('/article/<article_name>')
 def page(article_name):
+    # 解析markdown文件
     with open(articles_dir+'\\'+article_name, "r") as fd:
         article_content_html = md.convert(fd.read())
-    return render_template('_layouts/article.html', article_content=article_content_html)
+    return render_template('_layouts/article.html', 
+                           article_content=article_content_html)

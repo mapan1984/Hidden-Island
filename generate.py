@@ -1,6 +1,6 @@
 """ 
-将post中的markdown文件转为html文件，
-放置在'app/templates/post'目录中
+将articles中的markdown文件转为html文件，
+放置在'app/templates/articles'目录中
 """
 
 import os
@@ -8,10 +8,10 @@ import os
 import markdown
 from jinja2 import Environment, FileSystemLoader
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-sourcedir = basedir + '\\post\\'
-targetdir = basedir + '\\app\\templates\\post\\'
-layoutdir= basedir + '\\app\\templates\\_layouts'
+base_dir = os.path.abspath(os.path.dirname(__file__))
+source_dir = base_dir + '\\articles\\'
+target_dir = base_dir + '\\app\\templates\\articles\\'
+layout_dir= base_dir + '\\app\\templates\\_layouts'
 
 
 # markdown
@@ -25,15 +25,16 @@ md = markdown.Markdown(
 )
 
 # jinja
-env = Environment(loader=FileSystemLoader(layoutdir))
-template = env.get_template("post.html")
+env = Environment(loader=FileSystemLoader(layout_dir))
+template = env.get_template("article.html")
 
-for post in os.listdir(sourcedir):
+for article in os.listdir(source_dir):
     # 文章名
-    post_name = post.split('.')[0]
-
-    with open(sourcedir+post, "r") as p:
-        content_html = md.convert(p.read())
+    article_name = article.split('.')[0]
+    # 解析markdown文件
+    with open(source_dir+article, "r") as fd:
+        content_html = md.convert(fd.read())
         html = template.render(post_content=content_html)
-    with open(targetdir+post_name+'.html', "w") as p:
-        p.write(html)
+    # 保存解析好的html文件
+    with open(target_dir+post_name+'.html', "w") as fd:
+        fd.write(html)
