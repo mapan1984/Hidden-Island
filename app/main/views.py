@@ -5,5 +5,5 @@ from . import main
 
 @main.route('/')
 def index():
-    articles_list = os.listdir(current_app.config['ARTICLES_DIR'])
+    articles_list = os.listdir(current_app.config['ARTICLES_SOURCE_DIR'])
     return render_template('index.html', articles_list=articles_list)

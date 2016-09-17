@@ -30,7 +30,7 @@ template = env.get_template("article.html")
 
 for article in os.listdir(source_dir):
     # 文章名
-    article_name = article.split('.')[0]
+    article_name = os.splitext(article)[0]
     # 解析markdown文件
     with open(source_dir+article, "r") as fd:
         content_html = md.convert(fd.read())
