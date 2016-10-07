@@ -1,9 +1,12 @@
 import os
 
-from flask import render_template, current_app
 import markdown
+from flask import render_template, current_app
+
+from app.file_name import FileName
 
 from . import article
+
 
 # markdown
 md = markdown.Markdown(
@@ -15,23 +18,48 @@ md = markdown.Markdown(
     ]
 )
 
+def html_exists(file):
+    '''
+    argv:
+        article: xxx.md
+    return:
+        if xxx.html is exists:
+            return True
+        else:
+            return False
+    '''
+    if os.path.exists(file.ds_path):
+        return True
+    else:
+        return False
+
+def generate(file, monitor):
+    if html_exists(file):
+        print("%s is exist" % file.name)
+        if monitor.is_change(file.md_name):
+            print("%s is changed" % file.name)
+            with open(file.sc_path, "r") as fd:
+                article_content = md.convert(fd.read())
+                destination_html = render_template('_layouts/article.html',
+                               article_content=article_content)
+            with open(file.ds_path, "w") as fd:
+                fd.write(destination_html)
+    else:
+        print("%s is not exist" % file.name)
+        with open(file.sc_path, "r") as fd:
+            article_content = md.convert(fd.read())
+            destination_html = render_template('_layouts/article.html',
+                           article_content=article_content)
+        with open(file.ds_path, "w") as fd:
+            fd.write(destination_html)
+
 @article.route('/article/<article>')
 def page(article):
-    # 去除markdown文件扩展名(.md)，获取文件名
-    article_name = os.path.splitext(article)[0]
-    article_destination_path = os.path.join(
-        current_app.config['ARTICLES_DESTINATION_DIR'], article_name+'.html')
-    # 如果对应html文件已存在，直接使用html文件
-    if os.path.exists(article_destination_path):
-        return render_template('articles/'+article_name+'.html')
-    else:
-        # 找到请求的markdwon文件，解析markdown文件
-        article_source_path = os.path.join(
-            current_app.config['ARTICLES_SOURCE_DIR'], article)
-        with open(article_source_path, "r") as fd:
-            article_content_html = md.convert(fd.read())
-            destination_html = render_template('_layouts/article.html',
-                           article_content=article_content_html)
-        with open(article_destination_path, "w") as fd:
-            fd.write(destination_html)
-        return destination_html
+    '''
+    argv:
+        article: xxx
+    '''
+    file = FileName(article)
+    monitor = current_app.config['MONITOR']
+    generate(file, monitor)
+    return render_template('articles/'+file.html_name)

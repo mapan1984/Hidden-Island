@@ -10,3 +10,7 @@ venv
 
 # vscode
 .vscode
+
+# articles
+articles
+app/templates/articles
