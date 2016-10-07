@@ -23,4 +23,10 @@ def create_app():
     from .article import article as article_blueprint
     app.register_blueprint(article_blueprint)
 
+    from .admin import admin as admin_blueprint
+    app.register_blueprint(admin_blueprint)
+
+    from .user import user as user_blueprint
+    app.register_blueprint(user_blueprint)
+
     return app
