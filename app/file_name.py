@@ -8,6 +8,6 @@ class FileName(object):
         self.md_name = filename + '.md'
         self.html_name = filename + '.html'
         self.sc_path = \
-                os.path.join(current_app.config['ARTICLES_SOURCE_DIR'], self.md_name)
+            os.path.join(current_app.config['ARTICLES_SOURCE_DIR'], self.md_name)
         self.ds_path = \
-                os.path.join(current_app.config['ARTICLES_DESTINATION_DIR'], self.html_name)
+            os.path.join(current_app.config['ARTICLES_DESTINATION_DIR'], self.html_name)

@@ -2,18 +2,21 @@
 
 from flask import Flask, render_template, Blueprint
 from flask_bootstrap import Bootstrap
+from flask_sqlalchemy import SQLAlchemy
 
-from config import config
+from config import Config
 from app.file_monitor import FileMonitor
 
 bootstrap = Bootstrap()
+db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(config)
-    config.init_app(app)
+    app.config.from_object(Config)
+    Config.init_app(app)
 
     bootstrap.init_app(app)
+    db.init_app(app)
 
     app.config['MONITOR'] = FileMonitor(app.config['ARTICLES_SOURCE_DIR'])
 
