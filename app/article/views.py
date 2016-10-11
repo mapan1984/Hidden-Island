@@ -3,17 +3,17 @@ import os
 from flask import render_template
 
 from . import article
-from app.file_name import FileName
+from app.article_info import Article
 from app.generate import generate
 
 
-@article.route('/article/<article>')
-def page(article):
+@article.route('/article/<article_name>')
+def page(article_name):
     """
     argv:
-        article: 文件名(xxx)
+        article_name: 文件名(xxx)
     """
-    file = FileName(article)
-    if not os.path.exists(file.ds_path):
-        generate(file)
-    return render_template('articles/'+file.html_name)
+    article = Article(article_name)
+    if not os.path.exists(article.ds_path):
+        generate(article)
+    return render_template('articles/'+article.html_name)
