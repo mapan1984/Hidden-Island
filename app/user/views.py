@@ -1,8 +1,8 @@
 from flask import render_template, session, redirect, url_for
 
+from . import user 
 from app.user.user_form import LoginForm
 
-from . import user 
 
 @user.route('/user/login', methods=['GET', 'POST'])
 def login():

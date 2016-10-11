@@ -2,6 +2,8 @@ import os
 import json
 import hashlib
 
+from app.generate import generate
+
 def get_file_md5(filename):
     """ 由文件名(绝对路径)返回文件md5值 """
     if not os.path.isfile(filename):
@@ -34,10 +36,7 @@ class FileMonitor(object):
             # log_file存在记录值 
             with open(self.log_file, "r") as log:
                 self.log_kv = json.load(log)
-        except FileNotFoundError as e:
-            print(e)
-            self._init_log()
-        except json.JSONDecodeError as e:
+        except (FileNotFoundError,json.JSONDecodeError) as e:
             print(e)
             self._init_log()
         finally:
@@ -47,7 +46,7 @@ class FileMonitor(object):
         # 初始化log_kv和记录log_file
         # {"xxx.md":"md5 of xxx.md"}
         self.log_kv = {os.path.split(ab_path)[-1]:get_file_md5(ab_path) \
-                        for ab_path in self.ab_path_list}
+                       for ab_path in self.ab_path_list}
         self.refresh_log()
 
 
@@ -76,9 +75,13 @@ class FileMonitor(object):
     def refresh_kv(self):
         """ 如果无文件存在而有log_kv，删除相应log_kv """
         print("refresh_kv")
-        for filename in list(self.log_kv.keys()):
-            if filename not in self.filename_list:
-                self.log_kv.pop(filename)
+        has_log_md = {filename for filename in self.log_kv.keys()}
+        existed_md = {filename for filename in self.filename_list}
+        for filename in has_log_md - existed_md:
+            del self.log_kv[filename]
+        for filename in existed_md - has_log_md:
+            self.log_kv[filename] = \
+                    get_file_md5(os.path.join(self.file_dir, filename))
 
     def refresh_log(self):
         """ 更新md文件log记录 """

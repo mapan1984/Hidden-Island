@@ -1,5 +1,7 @@
 """ 程序包的构造文件 """
 
+import os
+
 from flask import Flask, render_template, Blueprint
 from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
@@ -10,6 +12,18 @@ from app.file_monitor import FileMonitor
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 
+def mkdir(path):
+    """ 根据path创建目录 """
+    path = path.strip()
+    path = path.rstrip('\\')
+
+    is_exist = os.path.exists(path)
+    if is_exist:
+        print("%s already exist." % path)
+    else:
+        os.makedirs(path)
+        print("creat %s success." % path)
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -17,6 +31,9 @@ def create_app():
 
     bootstrap.init_app(app)
     db.init_app(app)
+
+    mkdir(app.config['ARTICLES_DESTINATION_DIR'])
+    mkdir(app.config['ARTICLES_SOURCE_DIR'])
 
     app.config['MONITOR'] = FileMonitor(app.config['ARTICLES_SOURCE_DIR'])
 

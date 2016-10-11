@@ -8,7 +8,8 @@ class Config:
     SECRET_KEY = "hard to guess string"
     # 文章目录
     ARTICLES_SOURCE_DIR = os.path.join(base_dir, 'articles')
-    ARTICLES_DESTINATION_DIR = os.path.join(base_dir, 'app','templates','articles')
+    ARTICLES_DESTINATION_DIR = os.path.join(base_dir, 'app',
+                                            'templates','articles')
     # 数据库
     SQLALCHEMY_DATABASE_URL = \
             'sqlite:///' + os.path.join(base_dir, 'data.sqlite')

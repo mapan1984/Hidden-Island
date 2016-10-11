@@ -6,11 +6,12 @@ __pycache__
 *.sqlite
 
 # Virtual environment
-venv
+myenv
 
 # vscode
 .vscode
 
-# articles
-articles
-app/templates/articles
+# tmp
+app/templates/Blog
+app/templates/Blog.html
+

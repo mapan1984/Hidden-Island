@@ -8,5 +8,9 @@
 
 {% block content %}
   {# 渲染文章内容，不转义 #}
+  {{ title[0] }}
+  {{ summary[0] }}
+  {{ date[0] }}
+  {{ tag[0] }}
   {{ article_content|safe }}
 {% endblock %}
