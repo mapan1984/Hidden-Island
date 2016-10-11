@@ -16,7 +16,7 @@ def generate(file):
     with open(file.sc_path, "r") as scf,\
          open(file.ds_path, "w") as dsf:
         article_content = md.convert(scf.read())
-        destination_html = render_template('_layouts/article.html',
+        destination_html = render_template('_layouts/content.html',
                                            title=md.Meta['title'],
                                            summary=md.Meta['summary'],
                                            date=md.Meta['date'],

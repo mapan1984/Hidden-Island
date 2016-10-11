@@ -1,0 +1,13 @@
+{% extends "_layouts/default.html" %}
+
+{% block title %}{% endblock %}
+{% block head %}{{ super() }}{% endblock %}
+
+{% block content %}
+  <h1>Articles List</h1>
+  <ul>
+    {% for article_name in articles_list %}
+    <li><a href="/article/{{ article_name }}">{{ article_name }}</a></li>
+    {% endfor %}
+  </ul>
+{% endblock %}

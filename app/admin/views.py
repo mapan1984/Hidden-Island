@@ -4,7 +4,6 @@ from flask import render_template, current_app, session
 
 from . import admin
 from app.article_info import Article
-from app.article_log import ArticleLog
 from app.generate import generate
 
 
@@ -16,7 +15,7 @@ def index():
 @admin.route('/admin/refresh')
 def refresh():
     """ md文件改变则更新，不存在则生成 """
-    log = ArticleLog(current_app.config['ARTICLES_SOURCE_DIR'])
+    log = current_app.config['LOG']
     for article in log.article_list:
         if not os.path.exists(article.ds_path):
             print("%s is not exist" % article.html_name)

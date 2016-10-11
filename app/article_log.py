@@ -6,17 +6,16 @@ from app.article_info import Article
 
 
 def get_md5(filename):
-    """ 由文件绝对路径返回文件md5值 """
+    """由文件绝对路径返回文件md5值"""
     if not os.path.isfile(filename):
         print("%s is not a file" % filename)
     md5 = hashlib.md5()
-    fd = open(filename, "rb")
-    while True:
-        content = fd.read(1024)
-        if not content:
-            break
-        md5.update(content)
-    fd.close()
+    with open(filename, "rb") as fd:
+        while True:
+            content = fd.read(1024)
+            if not content:
+                break
+            md5.update(content)
     return md5.hexdigest()
 
 class ArticleLog(object):
