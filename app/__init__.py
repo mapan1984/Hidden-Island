@@ -7,18 +7,13 @@ from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 
 from config import Config
-from app.file_monitor import FileMonitor
 
 bootstrap = Bootstrap()
 db = SQLAlchemy()
 
 def mkdir(path):
     """ 根据path创建目录 """
-    path = path.strip()
-    path = path.rstrip('\\')
-
-    is_exist = os.path.exists(path)
-    if is_exist:
+    if os.path.exists(path):
         print("%s already exist." % path)
     else:
         os.makedirs(path)
@@ -34,8 +29,6 @@ def create_app():
 
     mkdir(app.config['ARTICLES_DESTINATION_DIR'])
     mkdir(app.config['ARTICLES_SOURCE_DIR'])
-
-    app.config['MONITOR'] = FileMonitor(app.config['ARTICLES_SOURCE_DIR'])
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
