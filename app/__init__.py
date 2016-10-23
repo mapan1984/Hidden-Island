@@ -13,11 +13,8 @@ db = SQLAlchemy()
 
 def mkdir(path):
     """ 根据path创建目录 """
-    if os.path.exists(path):
-        print("%s already exist." % path)
-    else:
+    if not os.path.exists(path):
         os.makedirs(path)
-        print("creat %s success." % path)
 
 def create_app():
     app = Flask(__name__)
@@ -29,6 +26,13 @@ def create_app():
 
     mkdir(app.config['ARTICLES_DESTINATION_DIR'])
     mkdir(app.config['ARTICLES_SOURCE_DIR'])
+
+    app_ctx = app.app_context()
+    app_ctx.push()
+    from app.article_log import ArticleLog
+    app_ctx.pop()
+
+    app.config['LOG'] = ArticleLog(app.config['ARTICLES_SOURCE_DIR'])
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)

@@ -8,9 +8,9 @@
 
 {% block content %}
   {# 渲染文章内容，不转义 #}
-  {{ title[0] }}
-  {{ summary[0] }}
-  {{ date[0] }}
-  {{ tag[0] }}
+  <h4>{{ title[0] }}</h4>
+  <p>{{ summary[0] }}</p>
+  <h5>{{ date[0] }}</h5>
+  <h5>{{ tag[0] }}</h5>
   {{ article_content|safe }}
 {% endblock %}

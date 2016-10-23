@@ -10,8 +10,3 @@ myenv
 
 # vscode
 .vscode
-
-# tmp
-app/templates/Blog
-app/templates/Blog.html
-
