@@ -2,23 +2,22 @@ import os
 
 from flask import render_template, current_app, session
 
-from . import main
+from app.main import main
+from app.models import Article
 
 @main.route('/')
 def index():
     page_num = 1
     start = 3*page_num - 3
     end = 3*page_num - 1
-    log = current_app.config['LOG']
     content_list = []
-    for article in log.article_list[start:end]:
+    for article in Article.query.all():
         with open(article.ds_path, "r", encoding='utf-8') as fd:
             content_list.append(fd.read())
     content = "".join(content_list)
     return render_template('index.html',
                            page_num=page_num,
-                           content=content,
-                           name=session.get('name'))
+                           content=content)
 
 @main.route('/category')
 def category():

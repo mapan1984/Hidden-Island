@@ -20,3 +20,8 @@ tag: hello
 
     :::javascript
     console.log("hello, world!")
+
+### bash
+
+    :::bash
+    echo hello, world!
