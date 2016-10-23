@@ -19,7 +19,7 @@ def post(article_name):
     return render_template('articles/'+article.html_name)
 
 @article.route('/article/page/<int:page_num>')
-def page(page_num):
+def page_with_num(page_num):
     if page_num == 1:
         return redirect(url_for('main.index'))
     start = 3*page_num - 3

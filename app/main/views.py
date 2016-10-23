@@ -8,13 +8,13 @@ from . import main
 def index():
     page_num = 1
     start = 3*page_num - 3
-    end = 3*page_num -1
+    end = 3*page_num - 1
     log = current_app.config['LOG']
-    content_list=[]
+    content_list = []
     for article in log.article_list[start:end]:
         with open(article.ds_path, "r", encoding='utf-8') as fd:
             content_list.append(fd.read())
-    content="".join(content_list)
+    content = "".join(content_list)
     return render_template('index.html',
                            page_num=page_num,
                            content=content,
