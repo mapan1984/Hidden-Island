@@ -4,8 +4,6 @@ from flask import render_template, current_app, redirect, url_for
 
 from app.article import article
 from app.models import Article
-from app.generate import generate
-
 
 @article.route('/article/<article_name>')
 def post(article_name):
@@ -14,8 +12,6 @@ def post(article_name):
         article_name: 文件名(xxx)
     """
     article = Article.query.filter_by(name=article_name).first()
-    if not os.path.exists(article.ds_path):
-        generate(article)
     return render_template('articles/'+article.html_name)
 
 @article.route('/article/page/<int:page_num>')

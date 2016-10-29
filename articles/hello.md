@@ -1,22 +1,25 @@
-title: hello world!
+---
+title: Hello, world!
 date: Mon Oct 10 09:03:28 CST 2016
-summary: say hello to the world, ... a brief description of my blog
-tag: hello
+summary: Say hello to the world!!!
+tag: toy
+---
 
-### c
+### C
 
+    :::c
     int main()
     {
         printf("hello, world!\n");
         return 0;
     }
 
-### python
+### Python
 
     :::python
     print("hello, world!")
 
-### javascript
+### JavaScript
 
     :::javascript
     console.log("hello, world!")

@@ -1,30 +1,16 @@
-<nav class="navbar navbar-inverse navbar-fixed-top">
+<div class="blog-masthead">
   <div class="container">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle"
-        data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="/">Hidden Island</a>
-    </div><!-- navbar-header -->
-    <ul class="nav navbar-nav navbar-right">
-      {% if name %}
-      <li><a href="/admin">{{ name }}</a></li>
+    <nav class="blog-nav">
+      <a class="blog-nav-item active" href="/">home</a>
+      <a class="blog-nav-item" href="/category">category</a>
+      <a class="blog-nav-item" href="/tag">tag</a>
+      <a class="blog-nav-item" href="/new">new</a>
+      <a class="blog-nav-item" href="/about">about</a>
+      {% if current_user.is_authenticated %}
+      <a class="blog-nav-item" href="{{ url_for('auth.logout') }}">Sign Out</a>
       {% else %}
-      <li><a href="/user/login">Login</a></li>
+      <a class="blog-nav-item" href="{{ url_for('auth.login') }}">Sign In</a>
       {% endif %}
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More Info<span class="caret"></span></a>
-        <ul class="dropdown-menu">
-          <li><a href="#">About Blog</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="#">About Me</a></li>
-        </ul>
-      </li>
-    </ul>
-  </div><!--container -->
-</nav><!-- navbar -->
+    </nav>
+  </div>
+</div>

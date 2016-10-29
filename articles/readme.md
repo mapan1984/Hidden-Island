@@ -1,7 +1,9 @@
-title: blog文章写作说明
+---
+title: Blog文章写作说明
 date: Mon Oct 10 09:26:34 CST 2016
-summary: say hello to the world, ... a brief description of my blog
-tag: readme
+summary: A brief description of my blog
+tag: markdown
+---
 
 ### codehilite
 

@@ -11,10 +11,10 @@ md = markdown.Markdown(
     ]
 )
 
-def generate(article):
-    """ 根据md文件生成html文件 """
-    with open(article.sc_path, "r") as scf,\
-         open(article.ds_path, "w") as dsf:
+def generate_article(sc_path, ds_path):
+    """根据md文件生成html文件"""
+    with open(sc_path, "r") as scf,\
+         open(ds_path, "w") as dsf:
         article_content = md.convert(scf.read())
         destination_html = render_template('_layouts/content.html',
                                            title=md.Meta['title'],
@@ -23,5 +23,3 @@ def generate(article):
                                            tag=md.Meta['tag'],
                                            article_content=article_content)
         dsf.write(destination_html)
-
-#    md.convertFile(input=file.sc_path, output=file.ds_path)

@@ -2,7 +2,8 @@
   {# 渲染文章内容，不转义 #}
   <div class="blog-post">
      <h2 class="blog-post-title">{{ title[0] }}</h2>
-     <p class="blog-post-meta">{{ date[0] }}<a href="#">{{ tag[0] }}</a></p>
+     <p class="blog-post-meta">{{ date[0] }}</p>
+     <p class="blog-post-meta">{{ tag[0] }}<a href="#">{{ tag[0] }}</a></p>
      <h4>{{ summary[0] }}</h4>
      {{ article_content|safe }}
   </div><!-- /.blog-post -->
