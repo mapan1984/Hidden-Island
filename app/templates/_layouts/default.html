@@ -52,6 +52,12 @@
         <h1 class="blog-title">Hidden Island</h1>
         <p class="lead blog-description">The best time to plant a tree was 10 years ago, The second best time is now.</p>
       </div>
+      {% for message in get_flashed_messages() %}
+        <div class="alert alert-warning">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ message }}
+        </div>
+      {% endfor %}
       <div class="row">
         <div class="col-sm-8 blog-main">
           {% block blog_main %}
@@ -109,6 +115,7 @@
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename='js/docs.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/refresh.js') }}"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
   {% endblock %}

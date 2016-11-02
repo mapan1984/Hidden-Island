@@ -12,8 +12,10 @@ def login():
         user = User.query.filter_by(username=form.name.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
+            flash("You have login")
             return redirect(url_for('admin.index'))
         else:
+            flash("Login fail")
             return redirect(url_for('main.index'))
     return render_template('auth/login.html', form=form)
 
@@ -21,4 +23,5 @@ def login():
 @login_required
 def logout():
     logout_user()
+    flash("You have logout")
     return redirect(url_for('main.index'))
