@@ -1,9 +1,21 @@
 {% extends "_layouts/default.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block blog_main %}
+{% block title %} Login {% endblock %}
+
+{% block blog_content %}
+<div class="container">
   <div class='page-header'>
-    <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
+    <h1>login</h1>
   </div>
-  {{ wtf.quick_form(form) }}
+  <div class="col-md-4">
+    {{ wtf.quick_form(form) }}
+    <p>
+      New user?
+      <a href="{{ url_for('auth.register') }}">
+        Click here to register
+      </a>
+    </p>
+  </div>
+</div>
 {% endblock %}
