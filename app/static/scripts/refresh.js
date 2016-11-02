@@ -16,15 +16,16 @@ function refresh(){
     if(!document.getElementById("refresh")) return;
 
     var refreshLink = document.getElementById("refresh");
-    refreshlink.onclick = function(){
+    refreshLink.onclick = function(){
+
         function success(text) {
             alert(text);
         }
-        
+
         function fail(code) {
             alert(code);
         }
-        
+
         var request = new XMLHttpRequest(); // 新建XMLHttpRequest对象
         
         request.onreadystatechange = function () { // 状态发生变化时，函数被回调
@@ -49,4 +50,4 @@ function refresh(){
     };
 }
 
-
+addLoadEvent(refresh);

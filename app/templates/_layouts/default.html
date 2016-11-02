@@ -3,58 +3,38 @@
 {% block doc %}
 <!doctype html>
 <html lang="zh-cn">
-<head>
-  {% block head %}
+  <head>
+    {% block head %}
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge, chrome=1">
     <meta name="renderer" content="webkit">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="my personal blog build with python flask">
-    <meta name="author" content="mapan1984">
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
     <title>Hidden Island {% block title %}{% endblock %}</title>
     <!-- bootstrap core css -->
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/bootstrap.min.css') }}" rel="stylesheet">
     <!-- custom styles for this template -->
-    <link href="{{ url_for('static', filename='css/blog.css')}}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/blog.css')}}" rel="stylesheet">
     <!-- systan for code -->
-    <link href="{{ url_for('static', filename='css/syntax.css')}}" rel="stylesheet">
-    <!-- just for debugging purposes. don't actually copy these 2 lines! -->
-    <!--[if lt ie 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="{{ url_for('static', filename='js/ie-emulation-modes-warning.js') }}"></script>
-    <!-- html5 shim and respond.js for ie8 support of html5 elements and media queries -->
-    <!--[if lt ie 9]>
-    <script src="http://cdn.bootcss.com/html5shiv/3.7.0/html5shiv.js"></script>
-    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    <style id="style-1-cropbar-clipper">
-      /* copyright 2014 evernote corporation. all rights reserved. */
-      .en-markup-crop-options {
-        top: 18px !important;
-        left: 50% !important;
-        margin-left: -100px !important;
-        width: 200px !important;
-        border: 2px rgba(255,255,255,.38) solid !important;
-        border-radius: 4px !important;
-      }
-      .en-markup-crop-options div div:first-of-type {
-        margin-left: 0px !important;
-      }
-    </style>
-  {% endblock %}
-</head>
-<body>
-  {% include '_includes/nav.html' %}
-
-  {% block blog_content %}
+    <link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
+    {% endblock %}
+  </head>
+  <body>
+    {% include '_includes/nav.html' %}
+  
+    {% block blog_content %}
     <div class="container">
       <div class="blog-header">
         <h1 class="blog-title">Hidden Island</h1>
         <p class="lead blog-description">The best time to plant a tree was 10 years ago, The second best time is now.</p>
       </div>
       {% for message in get_flashed_messages() %}
-        <div class="alert alert-warning">
-          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div class="alert alert-info">
+          <button type="button" class="close" data-dismiss="alert">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+          </button>
           {{ message }}
         </div>
       {% endfor %}
@@ -63,9 +43,8 @@
           {% block blog_main %}
           {% endblock %}
         </div><!-- /.blog-main -->
-
+  
         <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
-          {% block blog_sidebar %}
           <div class="sidebar-module sidebar-module-inset">
             <h4>About</h4>
             <p>Etiam porta <em>sem malesuada magna</em> mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.</p>
@@ -95,30 +74,24 @@
               <li><a href="#">Facebook</a></li>
             </ol>
           </div>
-          {% endblock %}
         </div><!-- /.blog-sidebar -->
       </div><!-- /.row -->
     </div><!-- /.container -->
-  {% endblock %}
-
-  {% block footer %}
+    {% endblock %}
+  
+    {% block footer %}
     <div class="blog-footer">
       <p>Blog template built for <a href="http://getbootstrap.com/">Bootstrap</a> by <a href="https://twitter.com/mdo">@mdo</a>.</p>
       <p> <a href="#">Back to top</a> </p>
     </div>
-  {% endblock %}
-
-  {% block js %} 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/docs.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/refresh.js') }}"></script>
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="{{ url_for('static', filename='js/ie10-viewport-bug-workaround.js') }}"></script>
-  {% endblock %}
-</body>
+    {% endblock %}
+  
+    {% block js %} 
+    <!-- Bootstrap core JavaScript -->
+    <script src="{{ url_for('static', filename='scripts/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/refresh.js') }}"></script>
+    {% endblock %}
+  </body>
 </html>
 {% endblock %}
