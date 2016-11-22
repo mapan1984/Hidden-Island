@@ -5,7 +5,7 @@ base_dir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     DEBUG = True
     # 表单
-    SECRET_KEY = "hard to guess string"
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'hard_to_guess_string')
     # 数据库
     SQLALCHEMY_DATABASE_URI = \
             'sqlite:///' + os.path.join(base_dir, 'data.sqlite')

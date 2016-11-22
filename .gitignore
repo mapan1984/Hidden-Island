@@ -2,11 +2,11 @@
 *.py[cod]
 __pycache__
 
-# SQLite databases
-*.sqlite
-
 # Virtual environment
 myenv
 
 # vscode
 .vscode
+
+# PyCharm
+.idea
