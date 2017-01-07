@@ -3,10 +3,13 @@
 __pycache__
 
 # Virtual environment
-myenv
+myvenv
 
 # vscode
 .vscode
 
 # PyCharm
 .idea
+
+# heroku
+.env

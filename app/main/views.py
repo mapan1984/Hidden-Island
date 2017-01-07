@@ -7,11 +7,11 @@ from app.models import Article
 
 @main.route('/')
 def index():
+    """主页"""
     page_num = 1
-    start = 3*page_num - 3
-    end = 3*page_num - 1
+    start, end = 2*page_num - 2, 2*page_num
     content_list = []
-    for article in Article.query.all():
+    for article in Article.query.all()[start:end]:
         with open(article.ds_path, "r", encoding='utf-8') as fd:
             content_list.append(fd.read())
     content = "".join(content_list)

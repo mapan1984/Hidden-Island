@@ -15,7 +15,11 @@ class Config:
     # 文章目录
     ARTICLES_SOURCE_DIR = os.path.join(base_dir, 'articles')
     ARTICLES_DESTINATION_DIR = os.path.join(base_dir, 'app',
-                                            'templates','articles')
+                                            'templates', 'articles')
+
+    # 上传文件 
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+
     @staticmethod
     def init_app(app):
         pass

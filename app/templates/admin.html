@@ -4,4 +4,8 @@
 
 {% block blog_content %}
   <a class="btn btn-default" href="/admin/refresh" role="button">更新</a>
+  <form action="/admin/upload/" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+  </form>
 {% endblock %}

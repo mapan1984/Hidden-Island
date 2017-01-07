@@ -70,19 +70,19 @@ class Article(db.Model):
 
     def _get_md5(self):
         """返回文件md5值"""
-        if not os.path.isfile(self.sc_path):
-            print("%s is not a file" % self.sc_path)
+#         if not os.path.isfile(self.sc_path):
+#             print("%s is not a file" % self.sc_path)
         md5 = hashlib.md5()
-        with open(self.sc_path, "rb") as fd:
+        with open(self.sc_path, "rb") as scf:
             while True:
-                content = fd.read(1024)
+                content = scf.read(1024)
                 if not content:
                     break
                 md5.update(content)
         return md5.hexdigest()
 
     def is_change(self):
-        """判断md文件是否改变，是则(更新记录), 并返回True"""
+        """判断md文件是否改变"""
         old_md5 = self.md5
         now_md5 = self._get_md5()
         if old_md5 != now_md5:
@@ -94,20 +94,20 @@ class Article(db.Model):
     def refresh(cls):
         """更新数据库记录"""
 
-        # 存在的文件的name集合
+        # 获取存在的文件的name集合
         existed_articles = set()
         for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
             existed_articles.add(md_name.split('.')[0])
 
-        # 已记录文件的name集合
+        # 获取已记录文件的name集合
         loged_articles = {article.name for article in cls.query.all()}
 
-        # 删除(有记录却不存在的文件)的文件记录
+        # 删除(有记录却不存在)的文件记录
         for name in loged_articles - existed_articles:
             print("%s is deleted" % name)
             db.session.delete(cls.query.filter_by(name=name).first())
 
-        # 增加(并生成)(存在却没有记录的文件)的文件记录
+        # 增加(存在却没有记录)的文件记录，并生成html文件
         for name in existed_articles - loged_articles:
             print("%s is added" % name)
             article = Article(name=name)
