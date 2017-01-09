@@ -99,4 +99,11 @@ function refresh(){
     };
 }
 
+// 为导航条的当前项目增加 `active` class
+$('.blog-nav').find('a').each(function () {
+    if (this.href == document.location.href) {
+        $(this).addClass('active');  // this.className += 'active';
+    }
+});
+
 addLoadEvent(refresh);

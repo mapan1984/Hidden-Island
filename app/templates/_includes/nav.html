@@ -1,14 +1,15 @@
 <div class="blog-masthead">
   <div class="container">
     <nav class="blog-nav">
-      <a class="blog-nav-item active" href="/" accesskey="1">home</a>
-      <a class="blog-nav-item" href="/category">category</a>
-      <a class="blog-nav-item" href="/tag">tag</a>
-      <a class="blog-nav-item" href="/new">new</a>
-      <a class="blog-nav-item" href="/about">about</a>
+      <a class="blog-nav-item" href="/" accesskey="1">Home</a>
+      <a class="blog-nav-item" href="/category">Category</a>
+      <a class="blog-nav-item" href="/tag">Tag</a>
+      <a class="blog-nav-item" href="/news">New</a>
+      <a class="blog-nav-item" href="/about">About</a>
       {% if current_user.is_authenticated %}
       <a class="blog-nav-item" href="{{ url_for('auth.logout') }}">Sign Out</a>
       <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.refresh') }}">Refresh</a>
+      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.index') }}">Admin</a>
       {% else %}
       <a class="blog-nav-item" href="{{ url_for('auth.login') }}">Sign In</a>
       {% endif %}

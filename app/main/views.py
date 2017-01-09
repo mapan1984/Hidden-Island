@@ -21,16 +21,16 @@ def index():
 
 @main.route('/category')
 def category():
-    return 'category'
+    return render_template('category.html')
 
 @main.route('/tag')
 def tag():
-    return 'tag'
+    return render_template('tag.html')
 
-@main.route('/new')
-def new():
-    return 'new'
+@main.route('/news')
+def news():
+    return render_template('news.html')
 
 @main.route('/about')
 def about():
-    return 'about'
+    return render_template('about.html')
