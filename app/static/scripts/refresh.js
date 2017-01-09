@@ -12,6 +12,55 @@ function addLoadEvent(func){
     }
 }
 
+function insertAfter(newElement, targetElement){
+    var parent = targetElement.parentNode;
+    if(parent.lastChild === targetElement){
+        parent.appendChild(newElement);
+    }else{
+        parent.insertBefore(newElement, targetElement.nextSibling);
+    }
+}
+
+function showInfo(text){
+    /*
+    <div class="alert alert-info">
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">×</span>
+        <span class="sr-only">Close</span>
+      </button>
+      <text>
+    </div>
+    */
+    var alertDiv = document.createElement("div");
+    alertDiv.setAttribute("class", "alert alert-info");
+
+    var  alertBtn = document.createElement("button");
+    alertBtn.setAttribute("type", "button");
+    alertBtn.setAttribute("class", "close");
+    alertBtn.setAttribute("data-dismiss", "alert");
+
+    var alertSpan1 = document.createElement("span");
+    alertSpan1.setAttribute("aria-hidden", "true")
+    var span1Text = document.createTextNode("x");
+    alertSpan1.appendChild(span1Text);
+
+    var alertSpan2 = document.createElement("span");
+    alertSpan2.setAttribute("class", "sr-only")
+    var span2Text = document.createTextNode("Close");
+    alertSpan2.appendChild(span2Text);
+
+    alertBtn.appendChild(alertSpan1);
+    alertBtn.appendChild(alertSpan2);
+
+    var info = document.createTextNode(text);
+
+    alertDiv.appendChild(alertBtn);
+    alertDiv.appendChild(info);
+
+    var blogMasthead = document.getElementsByClassName("blog-masthead")[0];
+    insertAfter(alertDiv, blogMasthead);
+}
+
 function refresh(){
     if(!document.getElementById("refresh")) return;
 
@@ -19,7 +68,7 @@ function refresh(){
     refreshLink.onclick = function(){
 
         function success(text) {
-            alert(text);
+            showInfo(text);
         }
 
         function fail(code) {

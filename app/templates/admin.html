@@ -3,9 +3,11 @@
 {% block title %}Admin{% endblock %}
 
 {% block blog_content %}
-  <a class="btn btn-default" href="/admin/refresh" role="button">更新</a>
-  <form action="/admin/upload/" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Upload">
-  </form>
+  <div class="container">
+    <a class="btn btn-default" href="/admin/refresh" role="button">更新</a>
+    <form action="/admin/upload/" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file">
+          <input type="submit" value="UpLoad">
+    </form>
+  </div>
 {% endblock %}
