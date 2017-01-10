@@ -1,7 +1,7 @@
 ---
 title: Hello, world!
 date: Mon Oct 10 09:03:28 CST 2016
-summary: Say hello to the world!!!
+category: code
 tag: toy
 ---
 

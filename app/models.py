@@ -1,4 +1,5 @@
 import os
+import os.path
 import hashlib
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -6,8 +7,8 @@ from flask_login import UserMixin
 
 from app import db, login_manager
 from config import Config
-from app.generate import generate_article
 
+##### Auth
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
@@ -45,12 +46,34 @@ class User(UserMixin, db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+##### Articles
+class Category(db.Model):
+    __tablename__ = 'categories'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    articles = db.relationship('Article', backref='category', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Category %r>' % self.name
+
+class Tag(db.Model):
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    articles = db.relationship('Article', backref='tag', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Tag %r>' % self.name
+
+from app.generate import generate_article
 
 class Article(db.Model):
     __tablename__ = 'articles'
     id = db.Column(db.Integer, primary_key=True)
-    md5 = db.Column(db.String(64), unique=True)
     name = db.Column(db.String(64), unique=True)
+    md5 = db.Column(db.String(64), unique=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'))
 
     @property
     def md_name(self):
@@ -105,6 +128,8 @@ class Article(db.Model):
         # 删除(有记录却不存在)的文件记录
         for name in loged_articles - existed_articles:
             print("%s is deleted" % name)
+            os.remove(os.path.join(Config.ARTICLES_DESTINATION_DIR,
+                                   name+".html"))
             db.session.delete(cls.query.filter_by(name=name).first())
 
         # 增加(存在却没有记录)的文件记录，并生成html文件
@@ -113,7 +138,7 @@ class Article(db.Model):
             article = Article(name=name)
             article.md5 = article._get_md5()
             db.session.add(article)
-            generate_article(article.sc_path, article.ds_path)
+            generate_article(article)
 
         # 查看是否有文件改变，改变则更新html文件和数据库记录
         for article in cls.query.all():
@@ -121,7 +146,7 @@ class Article(db.Model):
                 print("%s is changed" % article.md_name)
                 article.md5 = article._get_md5()
                 db.session.add(article)
-                generate_article(article.sc_path, article.ds_path)
+                generate_article(article)
             else:
                 print("%s is existed and %s is not changed"
                       % (article.html_name, article.md_name))

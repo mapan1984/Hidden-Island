@@ -41,7 +41,7 @@ def upload():
         db.session.add(article)
 
         # 生成html文件
-        generate_article(article.sc_path, article.ds_path)
+        generate_article(article)
 
         flash("upload %s secceed" % filename)
         return render_template('admin.html')
