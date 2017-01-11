@@ -13,3 +13,4 @@ Markdown==2.6.6
 # Production Server
 gevent
 gunicorn
+psycopg2

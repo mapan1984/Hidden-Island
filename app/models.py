@@ -15,6 +15,16 @@ class Role(db.Model):
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
 
+    @staticmethod
+    def insert_roles():
+        roles = [ 'User', 'Admin']
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            db.session.add(role)
+        db.session.commit()
+
     def __repr__(self):
         return '<Role %r>' % self.name
 
@@ -25,6 +35,19 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+
+    @staticmethod
+    def add_admin():
+        email = os.environ.get('ADMIN_EMAIL')
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            print('User: add admin')
+            user = User(email=email,
+                        username='admin',
+                        password=os.environ.get('ADMIN_PASSWORD'),
+                        role=Role.query.filter_by(name='Admin').first())
+            db.session.add(user)
+            db.session.commit()
 
     @property
     def password(self):
