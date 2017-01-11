@@ -13,3 +13,6 @@ myvenv
 
 # heroku
 .env
+
+# SQLite databases
+*.sqlite
