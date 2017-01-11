@@ -1,7 +1,8 @@
 import os
+import functools
 
 from flask import request, render_template, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app import db
 from app.admin import admin
@@ -15,20 +16,32 @@ def allowed_file(filename):
     return '.' in filename \
             and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+def admin_required(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kw):
+        if current_user.is_admin:
+            return func(*args, **kw)
+        else:
+            return render_template('403.html')
+    return wrapper
+
 @admin.route('/admin')
 @login_required
+@admin_required
 def index():
     return render_template('admin.html')
 
 @admin.route('/admin/refresh')
 @login_required
+@admin_required
 def refresh():
     """md文件改变则更新，不存在则生成"""
     Article.refresh()
     return "Refresh succeeded"
 
-@admin.route('/admin/upload/', methods=['POST'])
+@admin.route('/admin/upload', methods=['POST'])
 @login_required
+@admin_required
 def upload():
     file = request.files['file']
     if file and allowed_file(file.filename):

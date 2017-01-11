@@ -8,10 +8,12 @@
       <a class="blog-nav-item" href="/about">About</a>
       {% if current_user.is_authenticated %}
       <a class="blog-nav-item" href="{{ url_for('auth.logout') }}">Sign Out</a>
-      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.refresh') }}">Refresh</a>
-      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.index') }}">Admin</a>
       {% else %}
       <a class="blog-nav-item" href="{{ url_for('auth.login') }}">Sign In</a>
+      {% endif %}
+      {% if current_user.is_admin %}
+      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.refresh') }}">Refresh</a>
+      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.index') }}">Admin</a>
       {% endif %}
     </nav>
   </div>
