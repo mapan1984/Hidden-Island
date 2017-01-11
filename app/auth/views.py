@@ -1,8 +1,9 @@
 from flask import render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required
 
+from app import db
 from app.auth import auth 
-from app.models import User
+from app.models import User, Role
 from app.auth.forms import LoginForm, RegistrationForm
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -29,7 +30,8 @@ def register():
     if form.validate_on_submit():
         user = User(email=form.email.data,
                     username=form.username.data,
-                    password=form.password.data)
+                    password=form.password.data,
+                    role=Role.query.filter_by(name='User').first())
         db.session.add(user)
         flash('You can now login.')
         return redirect(url_for('auth.login'))
