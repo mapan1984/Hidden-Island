@@ -3,7 +3,7 @@ import os
 from flask import render_template, current_app, session
 
 from app.main import main
-from app.models import Article
+from app.models import Category, Tag, Article
 
 @main.route('/')
 def index():
@@ -19,9 +19,15 @@ def index():
                            page_num=page_num,
                            content=content)
 
-@main.route('/category')
-def category():
-    return render_template('category.html')
+@main.route('/categories')
+def categories():
+    category_articles = {}
+    categories = [category for category in Category.query.all()]
+    for category in categories:
+        category_articles[category] = \
+                Article.query.filter_by(category=category).all()
+    return render_template('category.html',
+                           category_articles=category_articles)
 
 @main.route('/tag')
 def tag():
