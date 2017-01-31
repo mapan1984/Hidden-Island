@@ -9,5 +9,13 @@
           <input type="file" name="file">
           <input type="submit" value="UpLoad">
     </form>
+    {% for category,articles in category_articles.items() %}
+      <h3>{{ category.name }}</h3>
+      <ul>
+      {% for article in articles %}
+        <li><a href="/article/{{article.name}}">{{article.name}}</a><a href="/admin/delete/{{article.name}}">删除</a></li>
+      {% endfor %}
+      </ul>
+    {% endfor %}
   </div>
 {% endblock %}

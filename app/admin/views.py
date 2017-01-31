@@ -6,7 +6,7 @@ from flask_login import login_required, current_user
 
 from app import db
 from app.admin import admin
-from app.models import Article
+from app.models import Article, Category
 from app.generate import generate_article
 from config import Config
 
@@ -25,11 +25,29 @@ def admin_required(func):
             return render_template('403.html')
     return wrapper
 
+def return_admin_index(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kw):
+        func(*args, **kw)
+        # 返回admin的主页 
+        category_articles = {}
+        for category in Category.query.all():
+            category_articles[category] = \
+                    Article.query.filter_by(category=category).all()
+        return render_template('admin.html',
+                               category_articles=category_articles)
+    return wrapper
+
 @admin.route('/admin')
 @login_required
 @admin_required
 def index():
-    return render_template('admin.html')
+    category_articles = {}
+    for category in Category.query.all():
+        category_articles[category] = \
+                Article.query.filter_by(category=category).all()
+    return render_template('admin.html',
+                           category_articles=category_articles)
 
 @admin.route('/admin/refresh')
 @login_required
@@ -42,6 +60,7 @@ def refresh():
 @admin.route('/admin/upload', methods=['POST'])
 @login_required
 @admin_required
+@return_admin_index
 def upload():
     file = request.files['file']
     if file and allowed_file(file.filename):
@@ -57,7 +76,20 @@ def upload():
         generate_article(article)
 
         flash("upload %s secceed" % filename)
-        return render_template('admin.html')
     else:
         flash("upload %s failed" % filename)
-        return render_template('admin.html')
+
+@admin.route('/admin/delete/<article_name>')
+@login_required
+@admin_required
+@return_admin_index
+def delete(article_name):
+    article = Article.query.filter_by(name=article_name).first()
+    if article:
+        os.remove(article.sc_path)
+        os.remove(article.ds_path)
+        db.session.delete(article)
+        flash("The {file} article was successfully deleted.".format(file=article_name))
+    else:
+        flash("The {file} article does not exist.".format(file=article_name))
+
