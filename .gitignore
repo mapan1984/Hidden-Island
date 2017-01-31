@@ -16,3 +16,6 @@ myvenv
 
 # SQLite databases
 *.sqlite
+
+# article ds path
+app/templates/articles
