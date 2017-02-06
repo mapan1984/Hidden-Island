@@ -5,7 +5,7 @@ from app import db
 from app.models import Category, Tag
 
 # markdown
-md = markdown.Markdown(
+MD = markdown.Markdown(
     extensions=[
         "markdown.extensions.codehilite(css_class=highlight,linenums=None)",
         "markdown.extensions.meta",
@@ -18,9 +18,9 @@ def generate_article(article):
     """根据md文件生成html文件"""
     with open(article.sc_path, "r", encoding="utf-8") as scf,\
          open(article.ds_path, "w", encoding="utf-8") as dsf:
-        article_content = md.convert(scf.read())
-        category_name = md.Meta.get('category')[0]
-        tag_name = md.Meta.get('tag')[0]
+        article_content = MD.convert(scf.read())
+        category_name = MD.Meta.get('category')[0]
+        tag_name = MD.Meta.get('tag')[0]
 
         category = Category.query.filter_by(name=category_name).first()
         if category is None:
@@ -39,8 +39,8 @@ def generate_article(article):
         db.session.commit()
 
         destination_html = render_template('_layouts/content.html',
-                                           title=md.Meta.get('title')[0],
-                                           date=md.Meta.get('date')[0],
+                                           title=MD.Meta.get('title')[0],
+                                           date=MD.Meta.get('date')[0],
                                            category=category_name,
                                            tag=tag_name,
                                            article_content=article_content)

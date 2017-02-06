@@ -11,17 +11,17 @@ from config import Config
 ##### Auth
 class Role(db.Model):
     __tablename__ = 'roles'
-    id = db.Column(db.Integer, primary_key=True)
+    id_ = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     @staticmethod
     def insert_roles():
-        roles = [ 'User', 'Admin']
-        for r in roles:
-            role = Role.query.filter_by(name=r).first()
+        role_names = ['User', 'Admin']
+        for role_name in role_names:
+            role = Role.query.filter_by(name=role_name).first()
             if role is None:
-                role = Role(name=r)
+                role = Role(name=role_name)
             db.session.add(role)
         db.session.commit()
 
@@ -118,7 +118,7 @@ class Article(db.Model):
     def ds_path(self):
         return os.path.join(Config.ARTICLES_DESTINATION_DIR, self.html_name)
 
-    def _get_md5(self):
+    def get_md5(self):
         """返回文件md5值"""
 #         if not os.path.isfile(self.sc_path):
 #             print("%s is not a file" % self.sc_path)
@@ -134,7 +134,7 @@ class Article(db.Model):
     def is_change(self):
         """判断md文件是否改变"""
         old_md5 = self.md5
-        now_md5 = self._get_md5()
+        now_md5 = self.get_md5()
         if old_md5 != now_md5:
             return True
         else:
@@ -152,18 +152,19 @@ class Article(db.Model):
         # 获取已记录文件的name集合
         loged_articles = {article.name for article in cls.query.all()}
 
-        # 删除(有记录却不存在)的文件记录
+        # 删除(有记录却不存在)的文件记录与生成的html文件
         for name in loged_articles - existed_articles:
             print("%s is deleted" % name)
-            os.remove(os.path.join(Config.ARTICLES_DESTINATION_DIR,
-                                   name+".html"))
+            ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, name+"html")
+            if os.path.isfile(ds_path):
+                os.remove(ds_path)
             db.session.delete(cls.query.filter_by(name=name).first())
 
         # 增加(存在却没有记录)的文件记录，并生成html文件
         for name in existed_articles - loged_articles:
             print("%s is added" % name)
             article = Article(name=name)
-            article.md5 = article._get_md5()
+            article.md5 = article.get_md5()
             db.session.add(article)
             generate_article(article)
 
@@ -171,7 +172,7 @@ class Article(db.Model):
         for article in cls.query.all():
             if article.is_change():
                 print("%s is changed" % article.md_name)
-                article.md5 = article._get_md5()
+                article.md5 = article.get_md5()
                 db.session.add(article)
                 generate_article(article)
             else:

@@ -1,14 +1,20 @@
-import os
-
-from flask import render_template, current_app, session
+from flask import render_template, redirect, url_for
 
 from app.main import main
-from app.models import Category, Tag, Article
+from app.models import Category, Article
 
 @main.route('/')
 def index():
-    """主页"""
-    page_num = 1
+    return redirect(url_for('main.index_with_num', page_num=1))
+
+@main.route('/<int:page_num>')
+def index_with_num(page_num=None):
+    """主页
+    argv:
+        page_num: 页号
+    """
+    if page_num is None:
+        page_num = 1
     start, end = 2*page_num - 2, 2*page_num
     content_list = []
     for article in Article.query.all()[start:end]:
@@ -19,11 +25,19 @@ def index():
                            page_num=page_num,
                            content=content)
 
+@main.route('/<article_name>')
+def show_article(article_name):
+    """ 显示单篇文章
+    argv:
+        article_name: 文件名(xxx)
+    """
+    article = Article.query.filter_by(name=article_name).first_or_404()
+    return render_template('articles/'+article.html_name)
+
 @main.route('/categories')
 def categories():
     category_articles = {}
-    categories = [category for category in Category.query.all()]
-    for category in categories:
+    for category in Category.query.all():
         category_articles[category] = \
                 Article.query.filter_by(category=category).all()
     return render_template('category.html',

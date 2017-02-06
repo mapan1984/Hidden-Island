@@ -29,7 +29,7 @@ def return_admin_index(func):
     @functools.wraps(func)
     def wrapper(*args, **kw):
         func(*args, **kw)
-        # 返回admin的主页 
+        # 返回admin的主页
         category_articles = {}
         for category in Category.query.all():
             category_articles[category] = \
@@ -69,7 +69,7 @@ def upload():
         # 添加记录
         print("%s is added" % filename)
         article = Article(name=filename.rsplit('.')[0])
-        article.md5 = article._get_md5()
+        article.md5 = article.get_md5()
         db.session.add(article)
 
         # 生成html文件

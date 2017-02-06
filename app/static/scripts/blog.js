@@ -1,10 +1,10 @@
 'use strict';
 
-function addLoadEvent(func){
+function addLoadEvent(func) {
     var oldonload = window.onload;
-    if(typeof window.onload != 'function'){
+    if (typeof window.onload != 'function') {
         window.onload = func;
-    }else{
+    } else {
         window.onload = function () {
             oldonload();
             func();
@@ -12,16 +12,16 @@ function addLoadEvent(func){
     }
 }
 
-function insertAfter(newElement, targetElement){
+function insertAfter(newElement, targetElement) {
     var parent = targetElement.parentNode;
-    if(parent.lastChild === targetElement){
+    if (parent.lastChild === targetElement) {
         parent.appendChild(newElement);
-    }else{
+    } else {
         parent.insertBefore(newElement, targetElement.nextSibling);
     }
 }
 
-function showInfo(text){
+function showInfo(text) {
     /*
     <div class="alert alert-info">
       <button type="button" class="close" data-dismiss="alert">
@@ -34,7 +34,7 @@ function showInfo(text){
     var alertDiv = document.createElement("div");
     alertDiv.setAttribute("class", "alert alert-info");
 
-    var  alertBtn = document.createElement("button");
+    var alertBtn = document.createElement("button");
     alertBtn.setAttribute("type", "button");
     alertBtn.setAttribute("class", "close");
     alertBtn.setAttribute("data-dismiss", "alert");
@@ -61,11 +61,11 @@ function showInfo(text){
     insertAfter(alertDiv, blogMasthead);
 }
 
-function refresh(){
-    if(!document.getElementById("refresh")) return;
+function refresh() {
+    if (!document.getElementById("refresh")) return;
 
     var refreshLink = document.getElementById("refresh");
-    refreshLink.onclick = function(){
+    refreshLink.onclick = function () {
 
         function success(text) {
             showInfo(text);
@@ -76,7 +76,7 @@ function refresh(){
         }
 
         var request = new XMLHttpRequest(); // 新建XMLHttpRequest对象
-        
+
         request.onreadystatechange = function () { // 状态发生变化时，函数被回调
             if (request.readyState === 4) { // 成功完成
                 // 判断响应结果:
@@ -91,7 +91,7 @@ function refresh(){
                 // HTTP请求还在继续...
             }
         }
-        
+
         // 发送请求:
         request.open('GET', '/admin/refresh');
         request.send();
@@ -102,7 +102,7 @@ function refresh(){
 // 为导航条的当前项目增加 `active` class
 $('.blog-nav').find('a').each(function () {
     if (this.href == document.location.href) {
-        $(this).addClass('active');  // this.className += 'active';
+        $(this).addClass('active'); // this.className += 'active';
     }
 });
 

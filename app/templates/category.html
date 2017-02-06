@@ -4,11 +4,11 @@
 
 {% block blog_content %}
   <div class="container">
-    {% for category in category_articles %}
+    {% for category,articles in category_articles.items() %}
       <h3>{{ category.name }}</h3>
       <ul>
-      {% for article in category_articles[category] %}
-        <li><a href="/article/{{article.name}}">{{article.name}}</a></li>
+      {% for article in articles %}
+        <li><a href="/{{article.name}}">{{article.name}}</a></li>
       {% endfor %}
       </ul>
     {% endfor %}

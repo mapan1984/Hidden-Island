@@ -7,9 +7,9 @@
     {% if page_num == 1 %}
       <li class="disabled"><a href="#">previous</a></li>
     {% else %}
-      <li><a href="{{ url_for('article.page_with_num', page_num = page_num - 1) }}">previous</a></li>
+      <li><a href="{{ url_for('main.index_with_num', page_num = page_num - 1) }}">previous</a></li>
     {% endif %}
-      <li><a href="{{ url_for('article.page_with_num', page_num = page_num + 1) }}">next</a></li>
+      <li><a href="{{ url_for('main.index_with_num', page_num = page_num + 1) }}">next</a></li>
     </ul>
   </nav>
 {% endblock %}

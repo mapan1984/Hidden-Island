@@ -1,6 +1,6 @@
 import os
 
-base_dir = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
@@ -9,8 +9,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
     # 文章目录
-    ARTICLES_SOURCE_DIR = os.path.join(base_dir, 'articles')
-    ARTICLES_DESTINATION_DIR = os.path.join(base_dir, 'app',
+    ARTICLES_SOURCE_DIR = os.path.join(BASE_DIR, 'articles')
+    ARTICLES_DESTINATION_DIR = os.path.join(BASE_DIR, 'app',
                                             'templates', 'articles')
 
     # 上传文件大小限制
@@ -23,16 +23,16 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-        'sqlite:///' + os.path.join(base_dir, 'data-dev.sqlite')
+        'sqlite:///' + os.path.join(BASE_DIR, 'data-dev.sqlite')
 
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-        'sqlite:///' + os.path.join(base_dir, 'data-test.sqlite')
+        'sqlite:///' + os.path.join(BASE_DIR, 'data-test.sqlite')
 
 class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'sqlite:///' + os.path.join(base_dir, 'data.sqlite')
+        'sqlite:///' + os.path.join(BASE_DIR, 'data.sqlite')
 
 class HerokuConfig(ProductionConfig):
     pass
