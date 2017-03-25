@@ -28,12 +28,12 @@
         {{ message }}
       </div>
     {% endfor %}
-    {% block blog_content %}
     <div class="container">
       <div class="blog-header">
         <h1 class="blog-title">Hidden Island</h1>
         <p class="lead blog-description">The best time to plant a tree was 10 years ago, The second best time is now.</p>
       </div>
+      {% block blog_content %}
       <div class="row">
         <div class="col-sm-8 blog-main">
           {% block blog_main %}
@@ -72,8 +72,8 @@
           </div>
         </div><!-- /.blog-sidebar -->
       </div><!-- /.row -->
+      {% endblock %}
     </div><!-- /.container -->
-    {% endblock %}
   
     {% block footer %}
     <div class="blog-footer">
@@ -88,6 +88,24 @@
     <script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='scripts/blog.js') }}"></script>
     {% endblock %}
+    <script>
+      $(function(){
+          function footerPosition(){
+              let footer = $('.blog-footer')
+              footer.removeClass("fixed-bottom");
+              let contentHeight = document.body.scrollHeight,//网页正文全文高度
+                  winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
+              if(!(contentHeight > winHeight)){
+                  //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
+                  footer.addClass("fixed-bottom");
+              } else {
+                  footer.removeClass("fixed-bottom");
+              }
+          }
+          footerPosition();
+          $(window).resize(footerPosition);
+      });
+    </script>
   </body>
 </html>
 {% endblock %}

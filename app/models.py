@@ -82,6 +82,13 @@ class Category(db.Model):
     name = db.Column(db.String(64), unique=True)
     articles = db.relationship('Article', backref='category', lazy='dynamic')
 
+    @property
+    def size(self):
+        size = 0
+        for _ in self.articles:
+            size = size + 1
+        return size
+
     def __repr__(self):
         return '<Category %r>' % self.name
 

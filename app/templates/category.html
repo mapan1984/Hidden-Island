@@ -3,14 +3,46 @@
 {% block title %}Category{% endblock %}
 
 {% block blog_content %}
-  <div class="container">
-    {% for category,articles in category_articles.items() %}
-      <h3>{{ category.name }}</h3>
-      <ul>
-      {% for article in articles %}
-        <li><a href="/{{article.name}}">{{article.name}}</a></li>
-      {% endfor %}
-      </ul>
+  <ul class="nav nav-pills" role="tablist">
+    {% for category in categories %}
+      {% if category == categories[0] %}
+        <li role="presentation" class="active">
+          <a href="#{{ category.name }}" aria-controls="{{ category.name }}" role="tab" data-toggle="tab">
+             {{ category.name }} <span class="badge">{{ category.size }}</span>
+          </a>
+        </li>
+      {% else %}
+        <li role="presentation">
+          <a href="#{{ category.name }}" aria-controls="{{ category.name }}" role="tab" data-toggle="tab">
+             {{ category.name }} <span class="badge">{{ category.size }}</span>
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  <div class="tab-content">
+    {% for category in categories %}
+      {% if category == categories[0] %}
+        <div role="tabpanel" class="tab-pane fade in active" id="{{ category.name }}">
+          <ul class="posts">
+            {% for article in category.articles %}
+              <li class="post">
+                <a href="/{{article.name}}">{{article.name}}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <div role="tabpanel" class="tab-pane fade" id="{{ category.name }}">
+          <ul class="posts">
+            {% for article in category.articles %}
+              <li class="post">
+                <a href="/{{article.name}}">{{article.name}}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
     {% endfor %}
   </div>
 {% endblock %}

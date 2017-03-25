@@ -36,12 +36,8 @@ def show_article(article_name):
 
 @main.route('/categories')
 def categories():
-    category_articles = {}
-    for category in Category.query.all():
-        category_articles[category] = \
-                Article.query.filter_by(category=category).all()
     return render_template('category.html',
-                           category_articles=category_articles)
+                           categories=Category.query.all())
 
 @main.route('/tag')
 def tag():
