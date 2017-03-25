@@ -11,7 +11,7 @@ from config import Config
 ##### Auth
 class Role(db.Model):
     __tablename__ = 'roles'
-    id_ = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
 
@@ -24,6 +24,7 @@ class Role(db.Model):
                 role = Role(name=role_name)
             db.session.add(role)
         db.session.commit()
+        print('insert roles is done')
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -63,6 +64,7 @@ class User(UserMixin, db.Model):
                         role=Role.query.filter_by(name='Admin').first())
             db.session.add(user)
             db.session.commit()
+        print('add admin is done')
 
     def __repr__(self):
         return '<User %r - %s>' % (self.username, self.role.name)

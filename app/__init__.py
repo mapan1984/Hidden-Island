@@ -29,6 +29,7 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
 
+    # 创建文章源目录(md)与目标目录(html)
     mkdir(app.config['ARTICLES_DESTINATION_DIR'])
     mkdir(app.config['ARTICLES_SOURCE_DIR'])
 
