@@ -39,8 +39,8 @@ def categories():
     return render_template('category.html',
                            categories=Category.query.all())
 
-@main.route('/tag')
-def tag():
+@main.route('/tags')
+def tags():
     return render_template('tag.html',
                            tags=Tag.query.all())
 

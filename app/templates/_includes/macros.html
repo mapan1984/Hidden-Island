@@ -1,0 +1,44 @@
+{% macro render_tab_page(items) %}
+  <ul class="nav nav-pills" role="tablist">
+    {% for item in items %}
+      {% if item == items[0] %}
+        <li role="presentation" class="active">
+          <a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">
+             {{ item.name }} <span class="badge">{{ item.size }}</span>
+          </a>
+        </li>
+      {% else %}
+        <li role="presentation">
+          <a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">
+             {{ item.name }} <span class="badge">{{ item.size }}</span>
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  <div class="tab-content">
+    {% for item in items %}
+      {% if item == items[0] %}
+        <div role="tabpanel" class="tab-pane fade in active" id="{{ item.name }}">
+          <ul class="posts">
+            {% for article in item.articles %}
+              <li class="post">
+                <a href="/{{article.name}}">{{article.name}}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% else %}
+        <div role="tabpanel" class="tab-pane fade" id="{{ item.name }}">
+          <ul class="posts">
+            {% for article in item.articles %}
+              <li class="post">
+                <a href="/{{article.name}}">{{article.name}}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endmacro %}

@@ -1,48 +1,8 @@
 {% extends "_layouts/default.html" %}
+{% import '_includes/macros.html' as macros %}
 
 {% block title %}Category{% endblock %}
 
 {% block blog_content %}
-  <ul class="nav nav-pills" role="tablist">
-    {% for category in categories %}
-      {% if category == categories[0] %}
-        <li role="presentation" class="active">
-          <a href="#{{ category.name }}" aria-controls="{{ category.name }}" role="tab" data-toggle="tab">
-             {{ category.name }} <span class="badge">{{ category.size }}</span>
-          </a>
-        </li>
-      {% else %}
-        <li role="presentation">
-          <a href="#{{ category.name }}" aria-controls="{{ category.name }}" role="tab" data-toggle="tab">
-             {{ category.name }} <span class="badge">{{ category.size }}</span>
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-  </ul>
-  <div class="tab-content">
-    {% for category in categories %}
-      {% if category == categories[0] %}
-        <div role="tabpanel" class="tab-pane fade in active" id="{{ category.name }}">
-          <ul class="posts">
-            {% for article in category.articles %}
-              <li class="post">
-                <a href="/{{article.name}}">{{article.name}}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% else %}
-        <div role="tabpanel" class="tab-pane fade" id="{{ category.name }}">
-          <ul class="posts">
-            {% for article in category.articles %}
-              <li class="post">
-                <a href="/{{article.name}}">{{article.name}}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-    {% endfor %}
-  </div>
+  {{ macros.render_tab_page(categories) }}
 {% endblock %}

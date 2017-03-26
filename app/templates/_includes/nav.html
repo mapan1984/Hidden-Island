@@ -3,7 +3,7 @@
     <nav class="blog-nav">
       <a class="blog-nav-item" href="/" accesskey="1">Home</a>
       <a class="blog-nav-item" href="/categories">Category</a>
-      <a class="blog-nav-item" href="/tag">Tag</a>
+      <a class="blog-nav-item" href="/tags">Tag</a>
       <a class="blog-nav-item" href="/news">New</a>
       <a class="blog-nav-item" href="/about">About</a>
       {% if current_user.is_authenticated %}
@@ -13,7 +13,7 @@
       {% endif %}
       {% if current_user.is_admin %}
       <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.refresh') }}">Refresh</a>
-      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.index') }}">Admin</a>
+      <a class="blog-nav-item" href="{{ url_for('admin.index') }}">Admin</a>
       {% endif %}
     </nav>
   </div>

@@ -1,48 +1,8 @@
 {% extends "_layouts/default.html" %}
+{% import '_includes/macros.html' as macros %}
 
 {% block title %}Tag{% endblock %}
 
 {% block blog_content %}
-  <ul class="nav nav-pills" role="tablist">
-    {% for tag in tags %}
-      {% if tag == tags[0] %}
-        <li role="presentation" class="active">
-          <a href="#{{ tag.name }}" aria-controls="{{ tag.name }}" role="tab" data-toggle="tab">
-             {{ tag.name }} <span class="badge">{{ tag.size }}</span>
-          </a>
-        </li>
-      {% else %}
-        <li role="presentation">
-          <a href="#{{ tag.name }}" aria-controls="{{ tag.name }}" role="tab" data-toggle="tab">
-             {{ tag.name }} <span class="badge">{{ tag.size }}</span>
-          </a>
-        </li>
-      {% endif %}
-    {% endfor %}
-  </ul>
-  <div class="tab-content">
-    {% for tag in tags %}
-      {% if tag == tags[0] %}
-        <div role="tabpanel" class="tab-pane fade in active" id="{{ tag.name }}">
-          <ul class="posts">
-            {% for article in tag.articles %}
-              <li class="post">
-                <a href="/{{article.name}}">{{article.name}}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% else %}
-        <div role="tabpanel" class="tab-pane fade" id="{{ tag.name }}">
-          <ul class="posts">
-            {% for article in tag.articles %}
-              <li class="post">
-                <a href="/{{article.name}}">{{article.name}}</a>
-              </li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-    {% endfor %}
-  </div>
+  {{ macros.render_tab_page(tags) }}
 {% endblock %}
