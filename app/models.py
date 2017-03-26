@@ -21,6 +21,7 @@ class Role(db.Model):
         for role_name in role_names:
             role = Role.query.filter_by(name=role_name).first()
             if role is None:
+                print('Role: add %s' % role_name)
                 role = Role(name=role_name)
             db.session.add(role)
         db.session.commit()
@@ -92,11 +93,19 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
+
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     articles = db.relationship('Article', backref='tag', lazy='dynamic')
+
+    @property
+    def size(self):
+        size = 0
+        for _ in self.articles:
+            size = size + 1
+        return size
 
     def __repr__(self):
         return '<Tag %r>' % self.name

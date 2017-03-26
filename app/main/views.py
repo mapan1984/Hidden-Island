@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for
 
 from app.main import main
-from app.models import Category, Article
+from app.models import Category, Tag, Article
 
 @main.route('/')
 def index():
@@ -41,7 +41,8 @@ def categories():
 
 @main.route('/tag')
 def tag():
-    return render_template('tag.html')
+    return render_template('tag.html',
+                           tags=Tag.query.all())
 
 @main.route('/news')
 def news():
