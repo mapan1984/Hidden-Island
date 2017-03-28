@@ -28,6 +28,7 @@ def admin_required(func):
 def return_admin_index(func):
     @functools.wraps(func)
     def wrapper(*args, **kw):
+        # 进行处理
         func(*args, **kw)
         # 返回admin的主页
         category_articles = {}
@@ -47,7 +48,7 @@ def index():
         category_articles[category] = \
                 Article.query.filter_by(category=category).all()
     return render_template('admin.html',
-                           category_articles=category_articles)
+                            category_articles=category_articles)
 
 @admin.route('/admin/refresh')
 @login_required
@@ -89,7 +90,12 @@ def delete(article_name):
         os.remove(article.sc_path)
         os.remove(article.ds_path)
         db.session.delete(article)
-        flash("The {file} article was successfully deleted.".format(file=article_name))
+        if article.tag.size == 0:
+            db.session.delete(article.tag)
+        if article.category.size == 0:
+            db.session.delete(article.category)
+        flash("The {file} article was successfully deleted."\
+              .format(file=article_name))
     else:
         flash("The {file} article does not exist.".format(file=article_name))
 

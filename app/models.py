@@ -162,29 +162,30 @@ class Article(db.Model):
     def refresh(cls):
         """更新数据库记录"""
 
-        # 获取存在的文件的name集合
-        existed_articles = set()
+        # 获取存在的md文件的name集合
+        existed_md_articles = set()
         for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
-            existed_articles.add(md_name.split('.')[0])
+            existed_md_articles.add(md_name.split('.')[0])
 
         # 获取已记录文件的name集合
         loged_articles = {article.name for article in cls.query.all()}
 
-        # 删除(有记录却不存在)的文件记录与生成的html文件
-        for name in loged_articles - existed_articles:
-            print("%s is deleted" % name)
-            ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, name+"html")
-            if os.path.isfile(ds_path):
-                os.remove(ds_path)
-            db.session.delete(cls.query.filter_by(name=name).first())
-
-        # 增加(存在却没有记录)的文件记录，并生成html文件
-        for name in existed_articles - loged_articles:
+        # 增加(存在md文件却没有记录)的文件记录，并生成html文件
+        for name in existed_md_articles - loged_articles:
             print("%s is added" % name)
             article = Article(name=name)
             article.md5 = article.get_md5()
             db.session.add(article)
             generate_article(article)
+
+        # 删除(有记录却不存在md文件)的文件记录与生成的html文件
+        for name in loged_articles - existed_md_articles:
+            ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, 
+                                   name+".html")
+            if os.path.isfile(ds_path):
+                print("%s is deleted" % name)
+                os.remove(ds_path)
+            db.session.delete(cls.query.filter_by(name=name).first())
 
         # 查看是否有文件改变，改变则更新html文件和数据库记录
         for article in cls.query.all():

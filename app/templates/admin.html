@@ -1,21 +1,25 @@
 {% extends "_layouts/default.html" %}
+{% import '_includes/macros.html' as macros %}
 
 {% block title %}Admin{% endblock %}
 
 {% block blog_content %}
-  <div class="container">
-    <a class="btn btn-default" href="/admin/refresh" role="button">更新</a>
-    <form action="/admin/upload" method="POST" enctype="multipart/form-data">
-          <input type="file" name="file">
-          <input type="submit" value="UpLoad">
-    </form>
-    {% for category,articles in category_articles.items() %}
-      <h3>{{ category.name }}</h3>
-      <ul>
-      {% for article in articles %}
-        <li><a href="/{{article.name}}">{{article.name}}</a><a href="/admin/delete/{{article.name}}">删除</a></li>
-      {% endfor %}
-      </ul>
-    {% endfor %}
-  </div>
+ <div class="row">
+   <div class="col-sm-8">
+   {% for category,articles in category_articles.items() %}
+     <h3>{{ category.name }}</h3>
+     <ul>
+     {% for article in articles %}
+       <li><a href="/{{article.name}}">{{article.name}}</a><a href="/admin/delete/{{article.name}}">删除</a></li>
+     {% endfor %}
+     </ul>
+   {% endfor %}
+   </div>
+   <div class="col-sm-3 col-sm-offset-1">
+     <form action="/admin/upload" method="POST" enctype="multipart/form-data">
+           <input type="file" name="file">
+           <input type="submit" value="UpLoad">
+     </form>
+   </div>
+ </div>
 {% endblock %}
