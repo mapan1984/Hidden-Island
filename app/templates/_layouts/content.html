@@ -1,9 +1,15 @@
 {% block content %}
   <div class="blog-post">
-    <h2 class="blog-post-title">{{ title }}</h2>
-    <p class="blog-post-meta">{{ date }}</p>
-    <p class="blog-post-meta">category: <a href="#">{{ category }}</a></p>
-    <p class="blog-post-meta">tag: <a href="#">{{ tag }}</a></p>
+    <div class="blog-post-info">
+      <div class="column">
+        <h2 class="blog-post-title">{{ title }}</h2>
+        <p class="blog-post-meta">{{ date }}</p>
+      </div>
+      <div class="column">
+        <p class="blog-post-meta">tag: <a href="/tags">{{ tag }}</a></p>
+        <p class="blog-post-meta">category: <a href="/categories">{{ category }}</a></p>
+      </div>
+    </div><!-- /.blog-post-info -->
     {# 渲染文章内容，不转义 #}
     {{ article_content|safe }}
   </div><!-- /.blog-post -->

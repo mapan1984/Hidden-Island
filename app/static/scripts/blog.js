@@ -1,5 +1,6 @@
 'use strict';
 
+// 增加加载函数
 function addLoadEvent(func) {
     var oldonload = window.onload;
     if (typeof window.onload != 'function') {
@@ -12,6 +13,7 @@ function addLoadEvent(func) {
     }
 }
 
+// 在targetElement后插入newElement
 function insertAfter(newElement, targetElement) {
     var parent = targetElement.parentNode;
     if (parent.lastChild === targetElement) {
@@ -21,6 +23,7 @@ function insertAfter(newElement, targetElement) {
     }
 }
 
+// 在页面中展示text信息
 function showInfo(text) {
     /*
     <div class="alert alert-info">
@@ -61,6 +64,7 @@ function showInfo(text) {
     insertAfter(alertDiv, blogMasthead);
 }
 
+// 处理refresh链接的点击
 function refresh() {
     if (!document.getElementById("refresh")) return;
 
@@ -95,15 +99,20 @@ function refresh() {
         // 发送请求:
         request.open('GET', '/admin/refresh');
         request.send();
+
+        // 不让link发生作用
         return false;
     };
 }
 
 // 为导航条的当前项目增加 `active` class
+var curHref = document.location.href;
 $('.blog-nav').find('a').each(function () {
-    if (this.href == document.location.href) {
-        $(this).addClass('active'); // this.className += 'active';
+    var curHrefReg = new RegExp('^'+this.href+'(|[\\d\\s#])$')
+    if (curHrefReg.test(curHref)) {
+        $(this).addClass('active');  // this.className += 'active';
     }
 });
 
 addLoadEvent(refresh);
+

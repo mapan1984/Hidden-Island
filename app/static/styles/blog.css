@@ -139,16 +139,26 @@ h6, .h6 {
 
 .blog-post {
   margin-bottom: 60px;
+  
+}
+.blog-post-info {
+  display: flex;
+  justify-content: space-between;
+  dispaly: -webkit-flex;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 .blog-post-title {
   margin-bottom: 5px;
   font-size: 40px;
+  color: #428bca;
 }
 .blog-post-meta {
-  margin-bottom: 20px;
   color: #999;
 }
-
 
 /*
  * Footer

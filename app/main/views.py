@@ -32,7 +32,9 @@ def show_article(article_name):
         article_name: 文件名(xxx)
     """
     article = Article.query.filter_by(name=article_name).first_or_404()
-    return render_template('articles/'+article.html_name)
+    with open(article.ds_path, "r", encoding='utf-8') as fd:
+        content = fd.read()
+    return render_template('article.html', content=content)
 
 @main.route('/categories')
 def categories():
