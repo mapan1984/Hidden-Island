@@ -1,12 +1,13 @@
 import os
 import functools
 
-from flask import request, render_template, flash
+from flask import request, render_template, flash, current_app
 from flask_login import login_required, current_user
 
 from app import db
 from app.admin import admin
 from app.models import Article, Category
+from app.email import send_email
 from app.generate import generate_article
 from config import Config
 
@@ -56,6 +57,10 @@ def index():
 def refresh():
     """md文件改变则更新，不存在则生成"""
     Article.refresh()
+    if current_app.config['ADMIN_EMAIL']:
+        send_email(current_app.config['ADMIN_EMAIL'], ' Refresh',
+                   'mail/refresh')
+
     return "Refresh succeeded"
 
 @admin.route('/admin/upload', methods=['POST'])
