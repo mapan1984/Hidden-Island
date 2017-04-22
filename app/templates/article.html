@@ -3,11 +3,13 @@
 {% block title %}{% endblock %}
 
 {% block blog_content %}
- <div class="row">
-   <div class="col-sm-8">
-      {{ content|safe }}
-   </div>
-   <div class="col-sm-3 col-sm-offset-1">
-   </div>
- </div>
+<div class="row">
+  <div class="col-sm-8">
+    {{ content|safe }}
+    <div id="comment">
+    </div>
+  </div>
+  <div class="col-sm-3 col-sm-offset-1">
+  </div>
+</div>
 {% endblock %}

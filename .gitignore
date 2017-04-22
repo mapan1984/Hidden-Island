@@ -16,3 +16,5 @@ myvenv
 
 # SQLite databases
 *.sqlite
+
+node_modules/
