@@ -1,8 +1,30 @@
 import markdown
+import datetime
 from flask import render_template
 
 from app import db
 from app.models import Category, Tag
+
+month_map = {
+    "Jan": 1,
+    "Feb": 2,
+    "Mar": 3,
+    "Apr": 4,
+    "May": 5,
+    "Jun": 6,
+    "Jul": 7,
+    "Aug": 8,
+    "Sep": 9,
+    "Oct": 10,
+    "Nov": 11,
+    "Dec": 12
+}
+
+# Thu Apr 27 21:24:32 CST 2017 --> 2017-4-27
+def convert_date(date):
+    [_, month, day, _, _, year] = date.split(' ')
+    month = month_map[month]
+    return datetime.date(int(year), month, int(day))
 
 # markdown
 MD = markdown.Markdown(
@@ -21,6 +43,10 @@ def generate_article(article):
     with open(article.sc_path, "r", encoding="utf-8") as scfd,\
          open(article.ds_path, "w", encoding="utf-8") as dsfd:
         article_content = MD.convert(scfd.read())
+        name = article.name
+        title = MD.Meta.get('title')[0]
+        datestr = MD.Meta.get('date')[0]
+        date = convert_date(datestr)
         category_name = MD.Meta.get('category')[0]
         tag_name = MD.Meta.get('tag')[0]
 
@@ -34,6 +60,9 @@ def generate_article(article):
             tag = Tag(name=tag_name)
             db.session.add(tag)
 
+        article.title = title
+        article.datestr = datestr
+        article.date = date
         article.category = category
         article.tag = tag
         db.session.add(article)
@@ -41,8 +70,9 @@ def generate_article(article):
         db.session.commit()
 
         destination_html = render_template('_layouts/content.html',
-                                           title=MD.Meta.get('title')[0],
-                                           date=MD.Meta.get('date')[0],
+                                           name=name,
+                                           title=title,
+                                           datestr=datestr,
                                            category=category_name,
                                            tag=tag_name,
                                            article_content=article_content)

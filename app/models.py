@@ -135,6 +135,9 @@ class Article(db.Model):
     __tablename__ = 'articles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    title = db.Column(db.String(64), unique=True)
+    datestr = db.Column(db.String(64))
+    date = db.Column(db.Date)
     md5 = db.Column(db.String(64), unique=True)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'))

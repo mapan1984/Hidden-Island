@@ -1,3 +1,4 @@
+from sqlalchemy import desc
 from flask import render_template, redirect, url_for
 
 from app.main import main
@@ -15,9 +16,12 @@ def index_with_num(page_num=None):
     """
     if page_num is None:
         page_num = 1
-    start, end = 2*page_num - 2, 2*page_num
+    size = 2
+    start = size*(page_num - 1)
     content_list = []
-    for article in Article.query.all()[start:end]:
+    for article in Article.query.order_by(desc(Article.date))\
+                                .offset(start)\
+                                .limit(size).all():
         with open(article.ds_path, "r", encoding='utf-8') as fd:
             content_list.append(fd.read())
     content = "".join(content_list)
