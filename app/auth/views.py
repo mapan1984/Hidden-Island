@@ -35,8 +35,21 @@ def register():
                     password=form.password.data,
                     role=Role.query.filter_by(name='User').first())
         db.session.add(user)
-        send_email(current_app.config['ADMIN_EMAIL'], ' Refresh',
-                   'mail/new_user', user=user)
-        flash('You can now login.')
-        return redirect(url_for('auth.login'))
+        db.session.commit()  # 提交数据库后才可赋予新用户id值，不能延后提交
+        token = user.generate_confirmation_token()
+        send_email(user.email, 'Confirm Your Account',
+                   'auth/email/confirm', user=user, token=token)
+        flash('A confirmation email has been sent to you by email.')
+        return redirect(url_for('main.index'))
     return render_template('auth/register.html', form=form)
+
+@auth.route('/confirm/<token>')
+@login_required
+def confirm(token):
+    if current_user.confirmed:
+        return redirect(url_for('main.index'))
+    if current_user.confirm(token):
+        flash('You have confirmed your account. Thanks!')
+    else:
+        flash('The confirmation link is invalid or has expired.')
+    return redirect(url_for('main.index'))

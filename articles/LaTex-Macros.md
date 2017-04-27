@@ -79,22 +79,9 @@ Topics:
 }
 ```
 
-### extending the number of arguments
-
-### arithmetic
-
-### conditionals
-
-### loop
-
-### string
-
 ### hook
 
 LaTex提供了两个hooks:
 
 * `\AtBeginDocument`会执行一组命令当遇到`\begin{document}`
 * `\AtEndDocument`会执行一组命令当遇到`\end{document}`
-
-### command-line LaTex
-

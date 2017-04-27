@@ -1,0 +1,7 @@
+Dear {{ user.username }},
+Welcome to Hidden Island!
+To confirm your account please click on the following link:
+{{ url_for('auth.confirm', token=token, _external=True) }}
+Sincerely,
+The Hidden Island Team
+Note: replies to this email address are not monitored.

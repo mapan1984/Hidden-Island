@@ -97,7 +97,7 @@ function refresh() {
         }
 
         // 发送请求:
-        request.open('GET', '/admin/refresh');
+        request.open('GET', '/admin/refresh_all');
         request.send();
 
         // 不让link发生作用

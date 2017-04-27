@@ -10,12 +10,12 @@ class Config:
 
 # Mail_Config {{
     MAIL_SERVER = 'smtp.163.com'
-    MAIL_PORT = '465'
+    MAIL_PORT = 465
     MAIL_USE_SSL = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_SUBJECT_PREFIX = '[COM HIDDEN-ISLAND SERVER]'
-    MAIL_SENDER = 'Com Hidden-Island Server <mapansky1984@163.com>'
+    MAIL_SUBJECT_PREFIX = '[HIDDEN-ISLAND]'
+    MAIL_SENDER = 'Hidden-Island <mapansky1984@163.com>'
     ADMIN_EMAIL =  os.environ.get('ADMIN_EMAIL')
 # end_mail_config }}
 
@@ -26,6 +26,13 @@ class Config:
 
     # 上传文件大小限制
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
+    # 允许上传的文件后缀
+    ALLOWED_EXTENSIONS = set(['md', 'markdown'])
+
+    @staticmethod
+    def allowed_file(filename):
+        return '.' in filename \
+               and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
     @staticmethod
     def init_app(app):

@@ -11,13 +11,9 @@ from app.email import send_email
 from app.generate import generate_article
 from config import Config
 
-ALLOWED_EXTENSIONS = set(['md', 'markdown'])
-
-def allowed_file(filename):
-    return '.' in filename \
-            and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 def admin_required(func):
+    """只有管理员可以进行func处理"""
     @functools.wraps(func)
     def wrapper(*args, **kw):
         if current_user.is_admin:
@@ -27,41 +23,35 @@ def admin_required(func):
     return wrapper
 
 def return_admin_index(func):
+    """只进行func处理，返回admin.index页面"""
     @functools.wraps(func)
     def wrapper(*args, **kw):
         # 进行处理
         func(*args, **kw)
-        # 返回admin的主页
-        category_articles = {}
-        for category in Category.query.all():
-            category_articles[category] = \
-                    Article.query.filter_by(category=category).all()
+        # 获取已记录文件集合
+        loged_articles = {article for article in Article.query.all()}
+        # 获取存在的md文件的name集合
+        existed_md_articles = set()
+        for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
+            existed_md_articles.add(md_name.split('.')[0])
         return render_template('admin.html',
-                               category_articles=category_articles)
+                               loged_articles=loged_articles,
+                               existed_md_articles=existed_md_articles)
     return wrapper
 
 @admin.route('/admin')
 @login_required
 @admin_required
 def index():
-    category_articles = {}
-    for category in Category.query.all():
-        category_articles[category] = \
-                Article.query.filter_by(category=category).all()
+    # 获取已记录文件集合
+    loged_articles = {article for article in Article.query.all()}
+    # 获取存在的md文件的name集合
+    existed_md_articles = set()
+    for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
+        existed_md_articles.add(md_name.split('.')[0])
     return render_template('admin.html',
-                            category_articles=category_articles)
-
-@admin.route('/admin/refresh')
-@login_required
-@admin_required
-def refresh():
-    """md文件改变则更新，不存在则生成"""
-    Article.refresh()
-    if current_app.config['ADMIN_EMAIL']:
-        send_email(current_app.config['ADMIN_EMAIL'], ' Refresh',
-                   'mail/refresh')
-
-    return "Refresh succeeded"
+                           loged_articles=loged_articles,
+                           existed_md_articles=existed_md_articles)
 
 @admin.route('/admin/upload', methods=['POST'])
 @login_required
@@ -69,38 +59,49 @@ def refresh():
 @return_admin_index
 def upload():
     file = request.files['file']
-    if file and allowed_file(file.filename):
+    if file and Config.allowed_file(file.filename):
         filename = file.filename
+        # 保存md文件
         file.save(os.path.join(Config.ARTICLES_SOURCE_DIR, filename))
-        # 添加记录
-        print("%s is added" % filename)
-        article = Article(name=filename.rsplit('.')[0])
-        article.md5 = article.get_md5()
-        db.session.add(article)
-
-        # 生成html文件
-        generate_article(article)
+        # 生成html与数据库记录
+        Article.render_md(name=filename.rsplit('.')[0])
 
         flash("upload %s secceed" % filename)
     else:
         flash("upload %s failed" % filename)
 
-@admin.route('/admin/delete/<article_name>')
+@admin.route('/admin/render/<article_name>')
 @login_required
 @admin_required
 @return_admin_index
-def delete(article_name):
-    article = Article.query.filter_by(name=article_name).first()
-    if article:
-        os.remove(article.sc_path)
-        os.remove(article.ds_path)
-        db.session.delete(article)
-        if article.tag.size == 0:
-            db.session.delete(article.tag)
-        if article.category.size == 0:
-            db.session.delete(article.category)
-        flash("The {file} article was successfully deleted."\
-              .format(file=article_name))
-    else:
-        flash("The {file} article does not exist.".format(file=article_name))
+def render(article_name):
+    flash(Article.render(article_name))
 
+@admin.route('/admin/refresh/<article_name>')
+@login_required
+@admin_required
+@return_admin_index
+def refresh(article_name):
+    flash(Article.refresh(article_name))
+
+@admin.route('/admin/delete/md/<article_name>')
+@login_required
+@admin_required
+@return_admin_index
+def delete_md(article_name):
+    flash(Article.delete_md(article_name))
+
+@admin.route('/admin/delete/html/<article_name>')
+@login_required
+@admin_required
+@return_admin_index
+def delete_html(article_name):
+    flash(Article.delete_html(article_name))
+
+@admin.route('/admin/refresh_all')
+@login_required
+@admin_required
+def refresh_all():
+    """md文件改变则更新，不存在则生成"""
+    Article.refresh_all_articles()
+    return "Refresh all articles succeeded"

@@ -15,10 +15,12 @@ MD = markdown.Markdown(
 )
 
 def generate_article(article):
-    """根据md文件生成html文件"""
-    with open(article.sc_path, "r", encoding="utf-8") as scf,\
-         open(article.ds_path, "w", encoding="utf-8") as dsf:
-        article_content = MD.convert(scf.read())
+    """根据md文件生成html文件
+    article: 数据库中article类型
+    """
+    with open(article.sc_path, "r", encoding="utf-8") as scfd,\
+         open(article.ds_path, "w", encoding="utf-8") as dsfd:
+        article_content = MD.convert(scfd.read())
         category_name = MD.Meta.get('category')[0]
         tag_name = MD.Meta.get('tag')[0]
 
@@ -44,4 +46,4 @@ def generate_article(article):
                                            category=category_name,
                                            tag=tag_name,
                                            article_content=article_content)
-        dsf.write(destination_html)
+        dsfd.write(destination_html)

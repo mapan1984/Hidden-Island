@@ -4,22 +4,70 @@
 {% block title %}Admin{% endblock %}
 
 {% block blog_content %}
- <div class="row">
-   <div class="col-sm-8">
-   {% for category,articles in category_articles.items() %}
-     <h3>{{ category.name }}</h3>
-     <ul>
-     {% for article in articles %}
-       <li><a href="/{{article.name}}">{{article.name}}</a><a href="/admin/delete/{{article.name}}">删除</a></li>
-     {% endfor %}
-     </ul>
-   {% endfor %}
-   </div>
-   <div class="col-sm-3 col-sm-offset-1">
-     <form action="/admin/upload" method="POST" enctype="multipart/form-data">
-           <input type="file" name="file">
-           <input type="submit" value="UpLoad">
-     </form>
-   </div>
- </div>
+<div class="row">
+  <div class="col-sm-8">
+    <table class="table">
+      <caption>已记录的文件集合</caption>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>更新</th>
+          <th>删除md文件</th>
+          <th>删除html文件</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for article in loged_articles %}
+        <tr>
+          <th scope="row">
+            <a href="/{{article.name}}">{{article.name}}</a>
+          </th>
+          <td>
+            <a href="/admin/refresh/{{article.name}}">refresh</a>
+          </td>
+          <td>
+            <a href="/admin/delete/md/{{article.name}}">delete md</a>
+          </td>
+         <td>
+            <a href="/admin/delete/html/{{article.name}}">delete html</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <table class="table">
+      <caption>已存在的md文件</caption>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>生成html文件</th>
+          <th>删除md文件</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for md_article in existed_md_articles %}
+        <tr>
+          <th scope="row">
+            <a href="/{{md_article}}">{{md_article}}</a>
+          </th>
+          <td>
+            <a href="/admin/render/{{md_article}}">render</a>
+          </td>
+          <td>
+            <a href="/admin/delete/md/{{md_article}}">delete md</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="col-sm-3 col-sm-offset-1">
+    <form action="/admin/upload" method="POST" enctype="multipart/form-data">
+      <input type="file" name="file">
+      <input type="submit" value="UpLoad">
+    </form>
+    <hr/>
+    <a id="refresh" href="{{ url_for('admin.refresh_all') }}">Refresh All</a>
+  </div>
+</div>
 {% endblock %}

@@ -12,7 +12,6 @@
       <a class="blog-nav-item" href="{{ url_for('auth.login') }}">Sign In</a>
       {% endif %}
       {% if current_user.is_admin %}
-      <a class="blog-nav-item" id="refresh" href="{{ url_for('admin.refresh') }}">Refresh</a>
       <a class="blog-nav-item" href="{{ url_for('admin.index') }}">Admin</a>
       {% endif %}
     </nav>
