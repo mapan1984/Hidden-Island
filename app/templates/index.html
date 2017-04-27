@@ -13,3 +13,15 @@
     </ul>
   </nav>
 {% endblock %}
+
+{% block blog_archives %}
+<h4>Archives</h4>
+<ol class="list-unstyled">
+  {% for article in articles %}
+  <li>
+    <a href="/{{article.name}}">{{article.date}}</a>
+  </li>
+  {% endfor %}
+</ol>
+{% endblock %}
+

@@ -27,7 +27,10 @@ def index_with_num(page_num=None):
     content = "".join(content_list)
     return render_template('index.html',
                            page_num=page_num,
-                           content=content)
+                           content=content,
+                           articles=Article.query\
+                                    .order_by(desc(Article.date))\
+                                    .limit(10).all())
 
 @main.route('/<article_name>')
 def show_article(article_name):
@@ -50,9 +53,11 @@ def tags():
     return render_template('tag.html',
                            tags=Tag.query.all())
 
-@main.route('/news')
-def news():
-    return render_template('news.html')
+@main.route('/archives')
+def archives():
+    return render_template('archives.html',
+                           articles=Article.query\
+                                    .order_by(desc(Article.date)).all())
 
 @main.route('/about')
 def about():

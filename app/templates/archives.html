@@ -1,0 +1,15 @@
+{% extends "_layouts/default.html" %}
+
+{% block title %}Archives{% endblock %}
+
+{% block blog_content %}
+<h4>Archives</h4>
+<ol class="list-unstyled">
+  {% for article in articles %}
+  <li>
+    <span>{{article.date}}</span>
+    <a href="/{{article.name}}">{{article.title}}</a>
+  </li>
+  {% endfor %}
+</ol>
+{% endblock %}
