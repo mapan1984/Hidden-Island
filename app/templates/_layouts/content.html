@@ -8,8 +8,14 @@
         <p class="blog-post-meta">{{ datestr }}</p>
       </div>
       <div class="column">
-        <p class="blog-post-meta">tag: <a href="/tags">{{ tag }}</a></p>
-        <p class="blog-post-meta">category: <a href="/categories">{{ category }}</a></p>
+        {% for tag in tags %}
+          <a href="/tags">
+            <span class="label label-primary">Tag: {{ tag }}</span>
+          </a>
+        {% endfor %}
+        <a href="/categories">
+          <span class="label label-default">Category: {{ category }}</span>
+        </a>
       </div>
     </div><!-- /.blog-post-info -->
     {# 渲染文章内容，不转义 #}

@@ -1,6 +1,6 @@
-from sqlalchemy import desc
 from flask import render_template, redirect, url_for
 
+from config import Config
 from app.main import main
 from app.models import Category, Tag, Article
 
@@ -14,23 +14,16 @@ def index_with_num(page_num=None):
     argv:
         page_num: 页号
     """
-    if page_num is None:
-        page_num = 1
-    size = 2
-    start = size*(page_num - 1)
-    content_list = []
-    for article in Article.query.order_by(desc(Article.date))\
-                                .offset(start)\
-                                .limit(size).all():
+    paginate = Config.PAGINATE
+    start = paginate*(page_num - 1)
+    contents = []
+    for article in Article.query.offset(start).limit(paginate).all():
         with open(article.ds_path, "r", encoding='utf-8') as fd:
-            content_list.append(fd.read())
-    content = "".join(content_list)
+            contents.append(fd.read())
     return render_template('index.html',
                            page_num=page_num,
-                           content=content,
-                           articles=Article.query\
-                                    .order_by(desc(Article.date))\
-                                    .limit(10).all())
+                           contents=contents,
+                           articles=Article.query.limit(10).all())
 
 @main.route('/<article_name>')
 def show_article(article_name):
@@ -56,8 +49,7 @@ def tags():
 @main.route('/archives')
 def archives():
     return render_template('archives.html',
-                           articles=Article.query\
-                                    .order_by(desc(Article.date)).all())
+                           articles=Article.query.all())
 
 @main.route('/about')
 def about():

@@ -15,6 +15,9 @@
     <link href="{{ url_for('static', filename='styles/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='styles/blog.css')}}" rel="stylesheet">
     <link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
+    <script type="text/javascript" async
+      src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
     {% endblock %}
   </head>
   <body>
@@ -75,24 +78,6 @@
     <script src="{{ url_for('static', filename='scripts/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='scripts/blog.js') }}"></script>
     {% endblock %}
-    <script>
-      $(function(){
-          function footerPosition(){
-              let footer = $('.blog-footer')
-              footer.removeClass("fixed-bottom");
-              let contentHeight = document.body.scrollHeight,//网页正文全文高度
-                  winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
-              if(!(contentHeight > winHeight)){
-                  //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
-                  footer.addClass("fixed-bottom");
-              } else {
-                  footer.removeClass("fixed-bottom");
-              }
-          }
-          footerPosition();
-          $(window).resize(footerPosition);
-      });
-    </script>
   </body>
 </html>
 {% endblock %}

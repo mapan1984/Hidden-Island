@@ -2,6 +2,7 @@ import os
 import os.path
 import hashlib
 
+from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
@@ -36,7 +37,7 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(64), unique=True, index=True)
-    username = db.Column(db.String(64), unique=True, index=True)
+    username = db.Column(db.String(64), unique=True)
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -112,12 +113,20 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
+belong_to = db.Table(
+    'belong_to',
+    db.Column('tag_id', db.Integer,
+              db.ForeignKey('tags.id'),
+              primary_key=True),
+    db.Column('article_id', db.Integer,
+              db.ForeignKey('articles.id'),
+              primary_key=True)
+)
 
 class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    articles = db.relationship('Article', backref='tag', lazy='dynamic')
 
     @property
     def size(self):
@@ -134,13 +143,18 @@ from app.generate import generate_article
 class Article(db.Model):
     __tablename__ = 'articles'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64), unique=True, index=True)
     title = db.Column(db.String(64), unique=True)
     datestr = db.Column(db.String(64))
     date = db.Column(db.Date)
-    md5 = db.Column(db.String(64), unique=True)
+    md5 = db.Column(db.String(32))
+    tags = db.relationship('Tag',
+                           secondary=belong_to,
+                           backref=db.backref('articles', lazy='dynamic'),
+                           lazy='dynamic')
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
-    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'))
+
+    __mapper_args__ = {"order_by": desc(date)}
 
     @property
     def md_name(self):
@@ -159,9 +173,6 @@ class Article(db.Model):
         return os.path.join(Config.ARTICLES_DESTINATION_DIR, self.html_name)
 
     def get_md5(self):
-        """返回文件md5值"""
-#         if not os.path.isfile(self.sc_path):
-#             print("%s is not a file" % self.sc_path)
         md5 = hashlib.md5()
         with open(self.sc_path, "rb") as scf:
             while True:
@@ -172,27 +183,12 @@ class Article(db.Model):
         return md5.hexdigest()
 
     def is_change(self):
-        """判断md文件是否改变"""
         old_md5 = self.md5
         now_md5 = self.get_md5()
         if old_md5 != now_md5:
             return True
         else:
             return False
-
-    def load_articles(self):
-        # 获取存在的md文件的name集合
-        self.existed_md_articles = set()
-        for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
-            self.existed_md_articles.add(md_name.split('.')[0])
-
-        # 获取已记录文件的name集合
-        self.loged_articles = {article.name for article in Article.query.all()}
-
-        # 获取所有html文件的name集合
-        self.existed_html_articles = set()
-        for html_name in os.listdir(Config.ARTICLES_DESTINATION_DIR):
-            self.existed_html_articles.add(md_name.split('.')[0])
 
     @classmethod
     def render(cls, name):
@@ -212,24 +208,23 @@ class Article(db.Model):
 
     @classmethod
     def delete_html(cls, name):
-        ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, 
-                               name+".html")
+        ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, name+".html")
         if os.path.isfile(ds_path):
             os.remove(ds_path)
         article=cls.query.filter_by(name=name).first()
-        db.session.delete(article)
-        if article.tag.size == 0:
-            db.session.delete(article.tag)
-        if article.category.size == 0:
+        for tag in article.tags.all():
+            if tag.size == 1:
+                db.session.delete(tag)
+        if article.category.size == 1:
             db.session.delete(article.category)
+        db.session.delete(article)
         return "%s.html is deleted" % name
 
     @classmethod
     def delete_md(cls, name):
-        sc_path = os.path.join(Config.ARTICLES_SOURCE_DIR,
-                               name+".md")
-        if os.path.isfile(ds_path):
-            os.remove(ds_path)
+        sc_path = os.path.join(Config.ARTICLES_SOURCE_DIR, name+".md")
+        if os.path.isfile(sc_path):
+            os.remove(sc_path)
             return "%s.md is deleted" % name
 
     @classmethod
@@ -254,13 +249,7 @@ class Article(db.Model):
         # 查看是否有文件改变，改变则更新html文件和数据库记录
         for article in cls.query.all():
             if article.is_change():
-                print("%s is changed" % article.md_name)
                 cls.refresh(article)
-            else:
-                print("%s is existed and %s is not changed"
-                      % (article.html_name, article.md_name))
-
-        db.session.commit()
 
     def __repr__(self):
         return '<Article %r>' % self.name

@@ -3,6 +3,7 @@ title: blog config
 date: Tue Jan 31 16:42:24 CST 2017
 category: code
 tag: flask
+     Python
 ---
 
 ### 预设环境变量

@@ -24,6 +24,9 @@ class Config:
     ARTICLES_DESTINATION_DIR = os.path.join(BASE_DIR, 'app',
                                             'templates', 'articles')
 
+    # 分页文章数
+    PAGINATE = 2
+
     # 上传文件大小限制
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     # 允许上传的文件后缀

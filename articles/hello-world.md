@@ -2,7 +2,10 @@
 title: Hello, world!
 date: Mon Oct 10 09:03:28 CST 2016
 category: code
-tag: toy
+tag: C
+     Python
+     JavaScript
+     Bash
 ---
 
 ### C

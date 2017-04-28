@@ -1,7 +1,9 @@
 {% extends "_layouts/default.html" %}
 
 {% block blog_main %}
-  {{ content|safe }}
+  {% for content in contents %}
+    {{ content|safe }}
+  {% endfor %}
   <nav>
     <ul class="pager">
     {% if page_num == 1 %}

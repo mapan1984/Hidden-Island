@@ -48,25 +48,31 @@ def generate_article(article):
         datestr = MD.Meta.get('date')[0]
         date = convert_date(datestr)
         category_name = MD.Meta.get('category')[0]
-        tag_name = MD.Meta.get('tag')[0]
+        tag_names = MD.Meta.get('tag')
+
+        article.title = title
+        article.datestr = datestr
+        article.date = date
 
         category = Category.query.filter_by(name=category_name).first()
         if category is None:
             category = Category(name=category_name)
             db.session.add(category)
-
-        tag = Tag.query.filter_by(name=tag_name).first()
-        if tag is None:
-            tag = Tag(name=tag_name)
-            db.session.add(tag)
-
-        article.title = title
-        article.datestr = datestr
-        article.date = date
         article.category = category
-        article.tag = tag
-        db.session.add(article)
 
+        for tag in article.tags.all():
+            article.tags.remove(tag)
+        for tag_name in tag_names:
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if tag is None:
+                tag = Tag(name=tag_name)
+                db.session.add(tag)
+            article.tags.append(tag)
+        for tag in Tag.query.all():
+            if tag.size == 0:
+                de.session.delete(tag)
+
+        db.session.add(article)
         db.session.commit()
 
         destination_html = render_template('_layouts/content.html',
@@ -74,6 +80,6 @@ def generate_article(article):
                                            title=title,
                                            datestr=datestr,
                                            category=category_name,
-                                           tag=tag_name,
+                                           tags=tag_names,
                                            article_content=article_content)
         dsfd.write(destination_html)
