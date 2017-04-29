@@ -102,13 +102,9 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     articles = db.relationship('Article', backref='category', lazy='dynamic')
+    size = db.Column(db.Integer, default=0)
 
-    @property
-    def size(self):
-        size = 0
-        for _ in self.articles:
-            size = size + 1
-        return size
+    __mapper_args__ = {"order_by": desc(size)}
 
     def __repr__(self):
         return '<Category %r>' % self.name
@@ -127,13 +123,9 @@ class Tag(db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    size = db.Column(db.Integer, default=0)
 
-    @property
-    def size(self):
-        size = 0
-        for _ in self.articles:
-            size = size + 1
-        return size
+    __mapper_args__ = {"order_by": desc(size)}
 
     def __repr__(self):
         return '<Tag %r>' % self.name
@@ -213,9 +205,11 @@ class Article(db.Model):
             os.remove(ds_path)
         article=cls.query.filter_by(name=name).first()
         for tag in article.tags.all():
-            if tag.size == 1:
+            tag.size -= 1
+            if tag.size == 0:
                 db.session.delete(tag)
-        if article.category.size == 1:
+        article.category.size -= 1
+        if article.category.size == 0:
             db.session.delete(article.category)
         db.session.delete(article)
         return "%s.html is deleted" % name

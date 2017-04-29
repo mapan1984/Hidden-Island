@@ -3,7 +3,7 @@
     <div class="blog-post-info">
       <div class="column">
         <h2 class="blog-post-title">
-          <a href="/write-code">Blog文章写作说明</a>
+          <a href="/write-article">Blog文章写作说明</a>
         </h2>
         <p class="blog-post-meta">Mon Oct 10 09:26:34 CST 2016</p>
       </div>
@@ -34,4 +34,13 @@ def hello(name):
 <h4 id="colons">colons</h4>
 <pre class="highlight"><code class="language-python">def hello(name):
     print(&quot;hello, %s&quot; % name)</code></pre>
+
+
+<h4 id="_1">日期格式</h4>
+<p>文章支持的日期格式为:</p>
+<pre class="highlight"><code>date: Thu Apr 27 21:36:25 CST 2017</code></pre>
+
+
+<p>它会被转换为Python datetime.date类型:</p>
+<pre class="highlight"><code>datetime.date(2017, 4, 27)</code></pre>
   </div><!-- /.blog-post -->

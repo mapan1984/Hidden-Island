@@ -56,17 +56,20 @@ def generate_article(article):
 
         category = Category.query.filter_by(name=category_name).first()
         if category is None:
-            category = Category(name=category_name)
-            db.session.add(category)
+            category = Category(name=category_name, size=0)
+        category.size += 1
+        db.session.add(category)
         article.category = category
 
         for tag in article.tags.all():
+            tag.size -= 1
             article.tags.remove(tag)
         for tag_name in tag_names:
             tag = Tag.query.filter_by(name=tag_name).first()
             if tag is None:
-                tag = Tag(name=tag_name)
-                db.session.add(tag)
+                tag = Tag(name=tag_name, size=0)
+            tag.size += 1
+            db.session.add(tag)
             article.tags.append(tag)
         for tag in Tag.query.all():
             if tag.size == 0:
