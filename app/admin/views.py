@@ -43,7 +43,7 @@ def upload():
         # 保存md文件
         file.save(os.path.join(Config.ARTICLES_SOURCE_DIR, filename))
         # 生成html与数据库记录
-        Article.render_md(name=filename.rsplit('.')[0])
+        Article.render(name=filename.rsplit('.')[0])
 
         flash("upload %s secceed" % filename)
     else:
@@ -61,8 +61,7 @@ def render(article_name):
 @login_required
 @admin_required
 def refresh(article_name):
-    flash(Article.refresh(article_name))
-    return redirect(url_for('admin.index'))
+    return Article.refresh(article_name)
 
 @admin.route('/admin/delete/md/<article_name>')
 @login_required
@@ -82,6 +81,14 @@ def delete_html(article_name):
 @login_required
 @admin_required
 def refresh_all():
-    """md文件改变则更新，不存在则生成"""
-    Article.refresh_all_articles()
+    Article.refresh_all()
     return "Refresh all articles succeeded"
+
+@admin.route('/admin/render_all')
+@login_required
+@admin_required
+def render_all():
+    Article.render_all()
+    flash("Render all articles succeeded")
+    return redirect(url_for('admin.index'))
+

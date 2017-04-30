@@ -32,10 +32,10 @@ class Config:
     # 允许上传的文件后缀
     ALLOWED_EXTENSIONS = set(['md', 'markdown'])
 
-    @staticmethod
-    def allowed_file(filename):
+    @classmethod
+    def allowed_file(cls, filename):
         return '.' in filename \
-               and filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+               and filename.rsplit('.', 1)[1] in cls.ALLOWED_EXTENSIONS
 
     @staticmethod
     def init_app(app):

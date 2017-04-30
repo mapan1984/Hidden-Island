@@ -23,13 +23,13 @@
             <a href="/{{article.name}}">{{article.title}}</a>
           </th>
           <td>
-            <a href="/admin/refresh/{{article.name}}">refresh</a>
+            <button type="button" class="btn btn-success btn-sm" id="/admin/refresh/{{article.name}}">refresh</button>
           </td>
           <td>
-            <a href="/admin/delete/md/{{article.name}}">delete md</a>
+            <a class="btn btn-danger btn-sm" href="/admin/delete/md/{{article.name}}" role="button">delete md</a>
           </td>
          <td>
-            <a href="/admin/delete/html/{{article.name}}">delete html</a>
+            <a class="btn btn-warning btn-sm" href="/admin/delete/html/{{article.name}}" role="button">delete html</a>
           </td>
         </tr>
         {% endfor %}
@@ -51,10 +51,10 @@
             <a href="/{{md_article}}">{{md_article}}</a>
           </th>
           <td>
-            <a href="/admin/render/{{md_article}}">render</a>
+            <a class="btn btn-primary btn-sm" href="/admin/render/{{md_article}}" role="button">render</a>
           </td>
           <td>
-            <a href="/admin/delete/md/{{md_article}}">delete md</a>
+            <a class="btn btn-danger btn-sm" href="/admin/delete/md/{{md_article}}" role="button">delete md</a>
           </td>
         </tr>
         {% endfor %}
@@ -63,11 +63,22 @@
   </div>
   <div class="col-sm-3 col-sm-offset-1">
     <form action="/admin/upload" method="POST" enctype="multipart/form-data">
-      <input type="file" name="file">
-      <input type="submit" value="UpLoad">
+      <div class="form-group">
+        <label>File input</label>
+        <input type="file" name="file">
+        <p class="help-block">只允许上传符合格式的markdown文件.</p>
+        <button type="submit" class="btn btn-default">Submit</button>
+      </div>
     </form>
     <hr/>
-    <a id="refresh" href="{{ url_for('admin.refresh_all') }}">Refresh All</a>
+    <a class="btn btn-success btn-sm" href="{{ url_for('admin.refresh_all') }}" role="button" id="refresh-all">Refresh All</a>
+    <hr/>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('admin.render_all') }}" role="button">Render All</a>
   </div>
 </div>
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+<script src="{{ url_for('static', filename='scripts/admin.js') }}"></script>
 {% endblock %}

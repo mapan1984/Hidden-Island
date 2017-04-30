@@ -106,6 +106,13 @@ class Category(db.Model):
 
     __mapper_args__ = {"order_by": desc(size)}
 
+    @classmethod
+    def clear(cls):
+        """清理size为0的目录"""
+        for category in cls.query.all():
+            if category.size == 0:
+                de.session.delete(category)
+
     def __repr__(self):
         return '<Category %r>' % self.name
 
@@ -126,6 +133,13 @@ class Tag(db.Model):
     size = db.Column(db.Integer, default=0)
 
     __mapper_args__ = {"order_by": desc(size)}
+
+    @classmethod
+    def clear(cls):
+        """清理size为0的标签"""
+        for tag in cls.query.all():
+            if tag.size == 0:
+                de.session.delete(tag)
 
     def __repr__(self):
         return '<Tag %r>' % self.name
@@ -182,8 +196,56 @@ class Article(db.Model):
         else:
             return False
 
+    def add_tags(self, tag_names):
+        """增加文章的tags
+        tag_names: tag名字组成的list
+        """
+        for tag_name in tag_names:
+            tag = Tag.query.filter_by(name=tag_name).first()
+            if tag is None:
+                tag = Tag(name=tag_name, size=0)
+            tag.size += 1
+            db.session.add(tag)
+            self.tags.append(tag)
+
+    def delete_tags(self):
+        """删除文章的tags"""
+        for tag in self.tags.all():
+            tag.size -= 1
+            self.tags.remove(tag)
+            if tag.size == 0:
+                db.session.delete(tag)
+
+    def change_category(self, category_name):
+        """该变文章的category(如果之前不存在category则增加)"""
+        new_category = Category.query.filter_by(name=category_name).first()
+        if new_category is None:
+            category = Category(name=category_name, size=0)
+            category.size += 1
+            db.session.add(category)
+            self.category = category
+            return None
+        old_category = self.category
+        if old_category is None:
+            new_category.size += 1
+            db.session.add(new_category)
+            self.category = new_category
+            return None
+        elif old_category != new_category:
+            old_category.size -= 1
+            if old_category.size == 0:
+                de.session.delete(old_category)
+            db.session.add(old_category)
+
+            new_category.size += 1
+            db.session.add(new_category)
+            self.category = new_category
+
     @classmethod
     def render(cls, name):
+        """根据md文件生成html文件
+        name: 文件名(去除后缀)
+        """
         article = Article(name=name)
         article.md5 = article.get_md5()
         db.session.add(article)
@@ -192,6 +254,9 @@ class Article(db.Model):
 
     @classmethod
     def refresh(cls, name):
+        """更新存在的article记录与html文件
+        name: 文件名(去除后缀)
+        """
         article = cls.query.filter_by(name=name).first()
         article.md5 = article.get_md5()
         db.session.add(article)
@@ -200,17 +265,18 @@ class Article(db.Model):
 
     @classmethod
     def delete_html(cls, name):
+        """删除存在的html文件与记录
+        name: 文件名(去除后缀)
+        """
         ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, name+".html")
         if os.path.isfile(ds_path):
             os.remove(ds_path)
         article=cls.query.filter_by(name=name).first()
-        for tag in article.tags.all():
-            tag.size -= 1
-            if tag.size == 0:
-                db.session.delete(tag)
+        article.delete_tags()
         article.category.size -= 1
         if article.category.size == 0:
             db.session.delete(article.category)
+        db.session.add(article.category)
         db.session.delete(article)
         return "%s.html is deleted" % name
 
@@ -222,8 +288,8 @@ class Article(db.Model):
             return "%s.md is deleted" % name
 
     @classmethod
-    def refresh_all_articles(cls):
-        """更新数据库记录"""
+    def render_all(cls):
+        """根据md文件生成html文件"""
         # 获取存在的md文件的name集合
         existed_md_articles = set()
         for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
@@ -236,14 +302,12 @@ class Article(db.Model):
         for name in existed_md_articles - loged_articles:
             cls.render(name)
 
-        # 删除(有记录却不存在md文件)的文件记录与生成的html文件
-        for name in loged_articles - existed_md_articles:
-            cls.delete_html(name)
-
-        # 查看是否有文件改变，改变则更新html文件和数据库记录
+    @classmethod
+    def refresh_all(cls):
+        """查看是否有文件改变，改变则更新html文件和数据库记录"""
         for article in cls.query.all():
             if article.is_change():
-                cls.refresh(article)
+                cls.refresh(article.name)
 
     def __repr__(self):
         return '<Article %r>' % self.name
