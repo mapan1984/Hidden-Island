@@ -4,7 +4,7 @@ $(function() {
     // 为导航条的当前项目增加 `active` class
     let curHref = document.location.href;
     $('.blog-nav').find('a').each(function () {
-        let curHrefReg = new RegExp('^'+this.href+'(|[\\d\\s#])$')
+        let curHrefReg = new RegExp('^'+this.href+'(|\\?page=\\d)$')
         if (curHrefReg.test(curHref)) {
             $(this).addClass('active');  // this.className += 'active';
         }

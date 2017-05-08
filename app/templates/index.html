@@ -1,19 +1,13 @@
 {% extends "_layouts/default.html" %}
+{% import '_includes/macros.html' as macros %}
 
 {% block blog_main %}
   {% for content in contents %}
     {{ content|safe }}
   {% endfor %}
-  <nav>
-    <ul class="pager">
-    {% if page_num == 1 %}
-      <li class="disabled"><a href="#">previous</a></li>
-    {% else %}
-      <li><a href="{{ url_for('main.index_with_num', page_num = page_num - 1) }}">previous</a></li>
-    {% endif %}
-      <li><a href="{{ url_for('main.index_with_num', page_num = page_num + 1) }}">next</a></li>
-    </ul>
-  </nav>
+  <div>
+    {{ macros.pagination_widget(pagination, '.index') }}
+  </div>
 {% endblock %}
 
 {% block blog_archives %}

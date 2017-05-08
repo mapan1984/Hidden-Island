@@ -1,11 +1,13 @@
 import os
 import os.path
 import hashlib
+import markdown
+import datetime
 
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app
+from flask import current_app, render_template
 from flask_login import UserMixin
 
 from app import db, login_manager
@@ -108,10 +110,11 @@ class Category(db.Model):
 
     @classmethod
     def clear(cls):
-        """清理size为0的目录"""
+        """清理size小于等于0的目录"""
         for category in cls.query.all():
-            if category.size == 0:
-                de.session.delete(category)
+            if category.size <= 0:
+                db.session.delete(category)
+        db.session.commit()
 
     def __repr__(self):
         return '<Category %r>' % self.name
@@ -136,15 +139,46 @@ class Tag(db.Model):
 
     @classmethod
     def clear(cls):
-        """清理size为0的标签"""
+        """清理size小于等于0的标签"""
         for tag in cls.query.all():
-            if tag.size == 0:
-                de.session.delete(tag)
+            if tag.size <= 0:
+                db.session.delete(tag)
+        db.session.commit()
 
     def __repr__(self):
         return '<Tag %r>' % self.name
 
-from app.generate import generate_article
+
+MONTH_MAP = {
+    "Jan": 1,
+    "Feb": 2,
+    "Mar": 3,
+    "Apr": 4,
+    "May": 5,
+    "Jun": 6,
+    "Jul": 7,
+    "Aug": 8,
+    "Sep": 9,
+    "Oct": 10,
+    "Nov": 11,
+    "Dec": 12
+}
+
+# Thu Apr 27 21:24:32 CST 2017 --> 2017-4-27
+def convert_date(date):
+    _, month, day, _, _, year = date.split(' ')
+    month = MONTH_MAP[month]
+    return datetime.date(int(year), month, int(day))
+
+# markdown
+MD = markdown.Markdown(
+    extensions=[
+        "markdown.extensions.codehilite(css_class=highlight,linenums=None)",
+        "markdown.extensions.meta",
+        "markdown.extensions.tables",
+        "markdown.extensions.toc",
+    ]
+)
 
 class Article(db.Model):
     __tablename__ = 'articles'
@@ -153,6 +187,7 @@ class Article(db.Model):
     title = db.Column(db.String(64), unique=True)
     datestr = db.Column(db.String(64))
     date = db.Column(db.Date)
+    body = db.Column(db.Text)
     md5 = db.Column(db.String(32))
     tags = db.relationship('Tag',
                            secondary=belong_to,
@@ -173,10 +208,6 @@ class Article(db.Model):
     @property
     def sc_path(self):
         return os.path.join(Config.ARTICLES_SOURCE_DIR, self.md_name)
-
-    @property
-    def ds_path(self):
-        return os.path.join(Config.ARTICLES_DESTINATION_DIR, self.html_name)
 
     def get_md5(self):
         md5 = hashlib.md5()
@@ -241,51 +272,65 @@ class Article(db.Model):
             db.session.add(new_category)
             self.category = new_category
 
+    def generate_article(self):
+        with open(self.sc_path, "r", encoding="utf-8") as scfd:
+            content = MD.convert(scfd.read())
+
+        title         = MD.Meta.get('title')[0]
+        datestr       = MD.Meta.get('date')[0]
+        date          = convert_date(datestr)
+        category_name = MD.Meta.get('category')[0]
+        tag_names     = MD.Meta.get('tag')
+
+        destination_html = render_template('_layouts/content.html',
+                                           name=self.name,
+                                           title=title,
+                                           datestr=datestr,
+                                           category=category_name,
+                                           tags=tag_names,
+                                           content=content)
+
+        self.title   = title
+        self.body    = destination_html
+        self.md5     = self.get_md5()
+        self.datestr = datestr
+        self.date    = date
+
+        self.change_category(category_name)
+
+        self.delete_tags()
+        self.add_tags(tag_names)
+
     @classmethod
     def render(cls, name):
         """根据md文件生成html文件
         name: 文件名(去除后缀)
         """
         article = Article(name=name)
-        article.md5 = article.get_md5()
+        article.generate_article()
         db.session.add(article)
-        generate_article(article)
         return "[article] %s is added" % name
 
-    @classmethod
-    def refresh(cls, name):
-        """更新存在的article记录与html文件
-        name: 文件名(去除后缀)
-        """
-        article = cls.query.filter_by(name=name).first()
-        article.md5 = article.get_md5()
-        db.session.add(article)
-        generate_article(article)
-        return "[article] %s is refreshed" % name
+    def refresh(self):
+        """更新存在的article记录与html文件"""
+        self.generate_article()
+        return "[article] %s is refreshed" % self.title
 
-    @classmethod
-    def delete_html(cls, name):
-        """删除存在的html文件与记录
-        name: 文件名(去除后缀)
-        """
-        ds_path = os.path.join(Config.ARTICLES_DESTINATION_DIR, name+".html")
-        if os.path.isfile(ds_path):
-            os.remove(ds_path)
-        article=cls.query.filter_by(name=name).first()
-        article.delete_tags()
-        article.category.size -= 1
-        if article.category.size == 0:
-            db.session.delete(article.category)
-        db.session.add(article.category)
-        db.session.delete(article)
-        return "%s.html is deleted" % name
+    def delete_html(self):
+        """删除存在的html文件与记录"""
+        self.delete_tags()
+        self.category.size -= 1
+        if self.category.size == 0:
+            db.session.delete(self.category)
+        db.session.add(self.category)
+        db.session.delete(self)
+        return "[article] %s is deleted" % self.title
 
-    @classmethod
-    def delete_md(cls, name):
-        sc_path = os.path.join(Config.ARTICLES_SOURCE_DIR, name+".md")
+    def delete_md(self):
+        sc_path = self.sc_path
         if os.path.isfile(sc_path):
             os.remove(sc_path)
-            return "%s.md is deleted" % name
+            return "[md] %s.md is deleted" % self.name
 
     @classmethod
     def render_all(cls):
@@ -307,7 +352,7 @@ class Article(db.Model):
         """查看是否有文件改变，改变则更新html文件和数据库记录"""
         for article in cls.query.all():
             if article.is_change():
-                cls.refresh(article.name)
+                article.refresh()
 
     def __repr__(self):
         return '<Article %r>' % self.name

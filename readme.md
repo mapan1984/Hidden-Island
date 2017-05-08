@@ -11,7 +11,7 @@
 
 ### 文章目录
 
-项目根目录下`./articles`为文章目录，保存Markdown格式的文章；生成的HTML格式的文章保存在`./app/templates/articles`中。
+项目根目录下`./articles`为文章目录，保存Markdown格式的文章
 
 ### 特性
 

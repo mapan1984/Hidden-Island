@@ -61,20 +61,24 @@ def render(article_name):
 @login_required
 @admin_required
 def refresh(article_name):
-    return Article.refresh(article_name)
+    article = Article.query.filter_by(name=article_name).first()
+    return article.refresh()
 
 @admin.route('/admin/delete/md/<article_name>')
 @login_required
 @admin_required
 def delete_md(article_name):
-    flash(Article.delete_md(article_name))
+    article = Article.query.filter_by(name=article_name).first()
+    flash(article.delete_md())
     return redirect(url_for('admin.index'))
 
 @admin.route('/admin/delete/html/<article_name>')
 @login_required
 @admin_required
 def delete_html(article_name):
-    flash(Article.delete_html(article_name))
+    print(article_name)
+    article = Article.query.filter_by(name=article_name).first()
+    flash(article.delete_html())
     return redirect(url_for('admin.index'))
 
 @admin.route('/admin/refresh_all')
