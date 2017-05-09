@@ -132,6 +132,29 @@ h6, .h6 {
   border-radius: 30px;
 }
 
+/*
+ * articles-list
+ */
+ul.articles {
+    list-style-type: none;
+    padding: 1px;
+    margin: 0px 5px 0px 5px;
+    border-top: $base-boder;
+}
+
+ul > li.article {
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 8px;
+  min-height: 24px;
+  border-bottom: $base-boder;
+}
+
+li.article:hover {
+  background-color: #f0f0f0;
+}
 
 /*
  * Blog posts

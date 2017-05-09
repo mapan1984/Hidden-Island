@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request
 
 from config import Config
 from app.main import main
@@ -9,14 +9,13 @@ def index():
     page = request.args.get('page', 1, type=int)
     pagination = Article.query.paginate(
             page, per_page=Config.PAGINATE, error_out=False)
-    contents = []
+    articles = []
     for article in pagination.items:
-        contents.append(article.body)
+        articles.append(article)
     return render_template('index.html',
-                           page_num=page,
-                           contents=contents,
                            pagination=pagination,
-                           articles=Article.query.limit(10).all())
+                           articles=articles,
+                           archives=Article.query.limit(10).all())
 
 @main.route('/<article_name>')
 def show_article(article_name):
@@ -42,6 +41,3 @@ def archives():
     return render_template('archives.html',
                            articles=Article.query.all())
 
-@main.route('/about')
-def about():
-    return render_template('about.html')

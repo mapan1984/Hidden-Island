@@ -2,9 +2,18 @@
 {% import '_includes/macros.html' as macros %}
 
 {% block blog_main %}
-  {% for content in contents %}
-    {{ content|safe }}
-  {% endfor %}
+  <ul class="articles">
+    {% for article in articles %}
+    <li class="article">
+      <div class="article-title">
+        <a href="/{{ article.name }}">{{ article.title }}</a>
+      </div>
+      <div class="article-date">
+        {{ article.date }}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
   <div>
     {{ macros.pagination_widget(pagination, '.index') }}
   </div>
@@ -13,9 +22,9 @@
 {% block blog_archives %}
 <h4>Archives</h4>
 <ol class="list-unstyled">
-  {% for article in articles %}
+  {% for archive in archives %}
   <li>
-    <a href="/{{article.name}}">{{article.date}}</a>
+    <a href="/{{archive.name}}">{{archive.date}}</a>
   </li>
   {% endfor %}
 </ol>

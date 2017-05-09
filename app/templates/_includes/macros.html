@@ -20,20 +20,30 @@
     {% for item in items %}
       {% if item == items[0] %}
         <div role="tabpanel" class="tab-pane fade in active" id="{{ item.name }}">
-          <ul class="posts">
+          <ul class="articles">
             {% for article in item.articles %}
-              <li class="post">
-                <a href="/{{article.name}}">{{article.title}}</a>
+              <li class="article">
+                <div class="article-title">
+                  <a href="/{{ article.name }}">{{ article.title }}</a>
+                </div>
+                <div class="article-date">
+                  {{ article.date }}
+                </div>
               </li>
             {% endfor %}
           </ul>
         </div>
       {% else %}
         <div role="tabpanel" class="tab-pane fade" id="{{ item.name }}">
-          <ul class="posts">
+          <ul class="articles">
             {% for article in item.articles %}
-              <li class="post">
-                <a href="/{{article.name}}">{{article.title}}</a>
+              <li class="article">
+                <div class="article-title">
+                  <a href="/{{ article.name }}">{{ article.title }}</a>
+                </div>
+                <div class="article-date">
+                  {{ article.date }}
+                </div>
               </li>
             {% endfor %}
           </ul>

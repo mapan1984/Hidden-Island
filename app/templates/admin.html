@@ -36,7 +36,7 @@
       </tbody>
     </table>
     <table class="table">
-      <caption>已存在的md文件</caption>
+      <caption>未记录的md文件</caption>
       <thead>
         <tr>
           <th>#</th>
@@ -45,7 +45,7 @@
         </tr>
       </thead>
       <tbody>
-        {% for md_article in existed_md_articles %}
+        {% for md_article in not_loged_articles %}
         <tr>
           <th scope="row">
             <a href="/{{md_article}}">{{md_article}}</a>
