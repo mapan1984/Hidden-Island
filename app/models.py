@@ -2,6 +2,7 @@ import os
 import os.path
 import hashlib
 import markdown
+import bleach
 import datetime
 
 from sqlalchemy import desc
@@ -43,6 +44,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     @property
     def password(self):
@@ -84,6 +86,7 @@ class User(UserMixin, db.Model):
             user = User(email=email,
                         username='admin',
                         password=os.environ.get('ADMIN_PASSWORD'),
+                        confirmed=True,
                         role=Role.query.filter_by(name='Admin').first())
             db.session.add(user)
             db.session.commit()
@@ -194,6 +197,7 @@ class Article(db.Model):
                            backref=db.backref('articles', lazy='dynamic'),
                            lazy='dynamic')
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    comments = db.relationship('Comment', backref='article', lazy='dynamic')
 
     __mapper_args__ = {"order_by": desc(date)}
 
@@ -356,3 +360,30 @@ class Article(db.Model):
 
     def __repr__(self):
         return '<Article %r>' % self.name
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True,
+                          default=datetime.datetime.utcnow)
+    disabled = db.Column(db.Boolean)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
+
+    __mapper_args__ = {"order_by": desc(timestamp)}
+
+    @staticmethod
+    def on_changed_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 
+                        'code', 'em', 'i', 'strong']
+        target.body_html = bleach.linkify(bleach.clean(
+                markdown.markdown(value, output_format='html'),
+                tags=allowed_tags, strip=True))
+
+    def __repr__(self):
+        return '<Comment of %r and %r>'\
+                % (self.author.username, self.article.title)
+
+db.event.listen(Comment.body, 'set', Comment.on_changed_body)

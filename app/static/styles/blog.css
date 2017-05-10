@@ -1,10 +1,10 @@
 /*
  * Globals
  */
-
 body {
-  font-family: Georgia, "Times New Roman", Times, serif;
   color: #555;
+  background-color: rgba(247, 247, 247, 0.4);
+  font-family: Georgia, "Times New Roman", Times, serif;
 }
 
 h1, .h1,
@@ -14,9 +14,13 @@ h4, .h4,
 h5, .h5,
 h6, .h6 {
   margin-top: 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-weight: normal;
   color: #333;
+  font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: normal;
+}
+
+a:link, a:visited {
+  text-decoration: none;
 }
 
 
@@ -139,7 +143,7 @@ ul.articles {
     list-style-type: none;
     padding: 1px;
     margin: 0px 5px 0px 5px;
-    border-top: $base-boder;
+    border-top: 1px solid #e0e0e0;
 }
 
 ul > li.article {
@@ -149,7 +153,7 @@ ul > li.article {
   justify-content: space-between;
   padding: 8px;
   min-height: 24px;
-  border-bottom: $base-boder;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 li.article:hover {
@@ -162,7 +166,7 @@ li.article:hover {
 
 .blog-post {
   margin-bottom: 60px;
-  
+
 }
 .blog-post-info {
   display: flex;
@@ -181,6 +185,39 @@ li.article:hover {
 }
 .blog-post-meta {
   color: #999;
+}
+
+/*
+ * Comments
+ */
+div.comment {
+  margin: 20px auto;
+  padding: 5px;
+  border-top: 1px solid #e0e0e0;
+}
+ul.comments {
+  list-style-type: none;
+  padding: 0px;
+  margin: 16px 0px 0px 0px;
+}
+ul.comments li.comment {
+  padding: 8px;
+  border-bottom: 1px solid #e0e0e0;
+}
+ul.comments li.comment:nth-child(1) {
+  border-top: 1px solid #e0e0e0;
+}
+ul.comments li.comment:hover {
+  background-color: #f0f0f0;
+}
+div.comment-date {
+  float: right;
+}
+div.comment-author {
+  font-weight: bold;
+}
+div.comment-form {
+  margin: 16px auto;
 }
 
 /*
