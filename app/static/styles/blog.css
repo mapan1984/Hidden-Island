@@ -235,5 +235,14 @@ div.comment-form {
   margin-bottom: 0;
 }
 
+/*
+ * auth form
+ */
+.form {
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+
 /* 动态为footer添加类fixed-bottom */
 .fixed-bottom {position: fixed;bottom: 0;width:100%;}

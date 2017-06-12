@@ -16,7 +16,7 @@ def admin_required(func):
         if current_user.is_admin:
             return func(*args, **kw)
         else:
-            return render_template('403.html')
+            return render_template('403.html'), 403
     return wrapper
 
 @admin.route('/admin')

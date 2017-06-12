@@ -32,10 +32,12 @@
       </div>
     {% endfor %}
     <div class="container">
+      {% block blog_header %}
       <div class="blog-header">
         <h1 class="blog-title">Hidden Island</h1>
         <p class="lead blog-description">The best time to plant a tree was 10 years ago, The second best time is now.</p>
       </div>
+      {% endblock %}
       {% block blog_content %}
       <div class="row">
         <div class="col-sm-8 blog-main">
@@ -57,12 +59,12 @@
             <ol class="list-unstyled">
               <li><a href="https://github.com/mapan1984">GitHub</a></li>
               <li><a href="https://twitter.com/mapan2001">Twitter</a></li>
-              <li><a href="https://www.facebook.com/profile.php?id=100014500204848">Facebook</a></li>
+              <li><a href="https://www.facebook.com/mapan1984">Facebook</a></li>
             </ol>
           </div>
         </div><!-- /.blog-sidebar -->
       </div><!-- /.row -->
-      {% endblock %}
+      {% endblock %} <!-- blog_content -->
     </div><!-- /.container -->
 
     {% block footer %}

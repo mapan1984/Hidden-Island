@@ -35,11 +35,9 @@ def deploy():
     upgrade()
 
     # create user roles
-    print('inset roles')
     Role.insert_roles()
 
     # create admin user
-    print('add admin')
     User.add_admin()
 
 if __name__ == '__main__':

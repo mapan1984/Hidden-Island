@@ -47,16 +47,31 @@ class User(UserMixin, db.Model):
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     @property
+    def is_admin(self):
+        return self.role.name == 'Admin'
+
+    @staticmethod
+    def add_admin():
+        email = os.environ.get('ADMIN_EMAIL')
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            print('User: add admin')
+            user = User(email=email,
+                        username='admin',
+                        password=os.environ.get('ADMIN_PASSWORD'),
+                        confirmed=True,
+                        role=Role.query.filter_by(name='Admin').first())
+            db.session.add(user)
+            db.session.commit()
+        print('add admin is done')
+
+    @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
 
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
-
-    @property
-    def is_admin(self):
-        return self.role.name == 'Admin'
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -77,20 +92,42 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
-    @staticmethod
-    def add_admin():
-        email = os.environ.get('ADMIN_EMAIL')
-        user = User.query.filter_by(email=email).first()
-        if user is None:
-            print('User: add admin')
-            user = User(email=email,
-                        username='admin',
-                        password=os.environ.get('ADMIN_PASSWORD'),
-                        confirmed=True,
-                        role=Role.query.filter_by(name='Admin').first())
-            db.session.add(user)
-            db.session.commit()
-        print('add admin is done')
+    def generate_password_reset_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'reset': self.id})
+
+    def reset_password(self, token, new_password):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        if data.get('reset') != self.id:
+            return False
+        self.password = new_password
+        db.session.add(self)
+        return True
+
+    def generate_email_change_token(self, new_email, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'change_email': self.id, 'new_email': new_email})
+
+    def change_email(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        if data.get('change_email') != self.id:
+            return False
+        new_email = data.get('new_email')
+        if new_email is None:
+            return False
+        if self.query.filter_by(email=new_email).first() is not None:
+            return False
+        self.email = new_email
+        db.session.add(self)
+        return True
 
     def __repr__(self):
         return '<User %r - %s>' % (self.username, self.role.name)
@@ -253,30 +290,26 @@ class Article(db.Model):
 
     def change_category(self, category_name):
         """该变文章的category(如果之前不存在category则增加)"""
-        new_category = Category.query.filter_by(name=category_name).first()
-        if new_category is None:
-            category = Category(name=category_name, size=0)
-            category.size += 1
-            db.session.add(category)
-            self.category = category
-            return None
         old_category = self.category
-        if old_category is None:
-            new_category.size += 1
-            db.session.add(new_category)
-            self.category = new_category
+        new_category = Category.query.filter_by(name=category_name).first()
+
+        if old_category is not None and new_category == old_category:
             return None
-        elif old_category != new_category:
+
+        if new_category is None:
+            new_category = Category(name=category_name, size=0)
+
+        if old_category is not None:
             old_category.size -= 1
             if old_category.size == 0:
-                de.session.delete(old_category)
-            db.session.add(old_category)
+                db.session.delete(old_category)
 
-            new_category.size += 1
-            db.session.add(new_category)
-            self.category = new_category
+        new_category.size += 1
+        db.session.add(new_category)
+        self.category = new_category
 
-    def generate_article(self):
+    def relog(self):
+        """文章记录已存在，更新文章纪录中各属性"""
         with open(self.sc_path, "r", encoding="utf-8") as scfd:
             content = MD.convert(scfd.read())
 
@@ -307,30 +340,30 @@ class Article(db.Model):
 
     @classmethod
     def render(cls, name):
-        """根据md文件生成html文件
+        """根据md文件生成文章记录，更新记录中各属性
         name: 文件名(去除后缀)
         """
         article = Article(name=name)
-        article.generate_article()
+        article.relog()
         db.session.add(article)
         return "[article] %s is added" % name
 
     def refresh(self):
-        """更新存在的article记录与html文件"""
-        self.generate_article()
+        """更新存在的article记录"""
+        self.relog()
         return "[article] %s is refreshed" % self.title
 
     def delete_html(self):
-        """删除存在的html文件与记录"""
+        """删除存在的文章记录"""
         self.delete_tags()
         self.category.size -= 1
         if self.category.size == 0:
             db.session.delete(self.category)
-        db.session.add(self.category)
         db.session.delete(self)
         return "[article] %s is deleted" % self.title
 
     def delete_md(self):
+        """删除存在文章记录的md文件"""
         sc_path = self.sc_path
         if os.path.isfile(sc_path):
             os.remove(sc_path)
@@ -376,7 +409,7 @@ class Comment(db.Model):
 
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
-        allowed_tags = ['a', 'abbr', 'acronym', 'b', 
+        allowed_tags = ['a', 'abbr', 'acronym', 'b',
                         'code', 'em', 'i', 'strong']
         target.body_html = bleach.linkify(bleach.clean(
                 markdown.markdown(value, output_format='html'),
