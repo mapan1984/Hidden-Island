@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block blog_content %}
-<div class="form">
+<div class="auth-form">
     {{ wtf.quick_form(form) }}
     <br>
     <p>Forgot your password? <a href="{{ url_for('auth.password_reset_request') }}">Click here to reset it</a>.</p>
