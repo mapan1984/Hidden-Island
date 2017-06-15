@@ -1,11 +1,17 @@
 from flask import render_template, request, flash, redirect, url_for
 from flask_login import current_user
 
-from config import Config
 from app import db
+from config import Config
 from app.main import main
 from app.main.forms import CommentForm
-from app.models import Category, Tag, Article, Comment
+from app.models import Category, Tag, Article, Comment, Permission
+
+
+@main.app_context_processor
+def inject_permissions():
+    """将Permission类加入模板上下文"""
+    return dict(Permission=Permission)
 
 @main.route('/')
 def index():

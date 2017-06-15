@@ -1,23 +1,14 @@
 import os
-import functools
 
-from flask import request, redirect, url_for, render_template, flash
+from flask import request, redirect, url_for, render_template, \
+                  flash, current_app
 from flask_login import login_required, current_user
 
 from app.admin import admin
 from app.models import Article
+from app.decorators import admin_required
 from config import Config
 
-
-def admin_required(func):
-    """只有管理员可以进行func处理"""
-    @functools.wraps(func)
-    def wrapper(*args, **kw):
-        if current_user.is_admin:
-            return func(*args, **kw)
-        else:
-            return render_template('403.html'), 403
-    return wrapper
 
 @admin.route('/admin')
 @login_required
@@ -27,7 +18,7 @@ def index():
     loged_articles = Article.query.all()
     # 获取存在的md文件的name集合
     existed_md_articles = set()
-    for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
+    for md_name in os.listdir(current_app.config['ARTICLES_SOURCE_DIR']):
         existed_md_articles.add(md_name.split('.')[0])
     # 获取未被记录的md文件name的集合
     not_loged_articles = existed_md_articles\
@@ -44,7 +35,8 @@ def upload():
     if file and Config.allowed_file(file.filename):
         filename = file.filename
         # 保存md文件
-        file.save(os.path.join(Config.ARTICLES_SOURCE_DIR, filename))
+        file.save(os.path.join(current_app.config['ARTICLES_SOURCE_DIR'],
+                               filename))
         # 生成html与数据库记录
         Article.render(name=filename.rsplit('.')[0])
 

@@ -9,29 +9,48 @@ from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app, render_template
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 
 from app import db, login_manager
 from config import Config
 
 ##### Auth
+class Permission:
+    FOLLOW = 0x01
+    COMMENT = 0x02
+    WRITE_ARTICLES = 0x04
+    MODERATE_COMMENTS = 0x08
+    ADMINISTER = 0x80
+
 class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    permissions = db.Column(db.Integer)
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     @staticmethod
     def insert_roles():
-        role_names = ['User', 'Admin']
-        for role_name in role_names:
+        roles = {
+            'User':(Permission.FOLLOW
+                    | Permission.COMMENT, True),
+            'Author':(Permission.FOLLOW
+                      | Permission.COMMENT
+                      | Permission.WRITE_ARTICLES
+                      | Permission.MODERATE_COMMENTS, False),
+            'Administrator': (0xff, False)
+        }
+        for role_name in roles.keys():
             role = Role.query.filter_by(name=role_name).first()
             if role is None:
                 print('Role: add %s' % role_name)
                 role = Role(name=role_name)
+            role.permissions = roles[role_name][0]
+            role.default = roles[role_name][1]
             db.session.add(role)
         db.session.commit()
-        print('insert roles is done')
+        print('Insert roles is done.')
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -46,13 +65,32 @@ class User(UserMixin, db.Model):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
+    def __init__(self, **kwargs):
+        """
+        为使用管理员邮件地址进行注册的用户分配管理员的角色；
+        否则，注册的默认角色为 `User`(default=True)
+        """
+        super(User, self).__init__(**kwargs)
+        if self.role is None:
+            if self.email == current_app.config['ADMIN_EMAIL']:
+                self.role = Role.query.filter_by(permissions=0xff).frist()
+            if self.role is None:
+                self.role = Role.query.filter_by(default=True).first()
+
+    def can(self, permissions):
+        return self.role is not None \
+               and (self.role.permissions & permissions) == permissions
+
     @property
-    def is_admin(self):
-        return self.role.name == 'Admin'
+    def is_administrator(self):
+        return self.can(Permission.ADMINISTER)
 
     @staticmethod
     def add_admin():
         email = os.environ.get('ADMIN_EMAIL')
+        if email is None:
+            print('ADMIN_EMAIL not find in os.environ')
+            return
         user = User.query.filter_by(email=email).first()
         if user is None:
             print('User: add admin')
@@ -60,10 +98,10 @@ class User(UserMixin, db.Model):
                         username='admin',
                         password=os.environ.get('ADMIN_PASSWORD'),
                         confirmed=True,
-                        role=Role.query.filter_by(name='Admin').first())
+                        role=Role.query.filter_by(permissions=0xff).first())
             db.session.add(user)
             db.session.commit()
-        print('add admin is done')
+        print('Add admin is done.')
 
     @property
     def password(self):
@@ -131,6 +169,20 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User %r - %s>' % (self.username, self.role.name)
+
+
+class AnonymousUser(AnonymousUserMixin):
+    """
+    为保持一致，为未登录用户实现`can`与`is_administrator`方法
+    """
+
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+
+login_manager.anonymous_user = AnonymousUser
 
 
 # Flask_Login要求的加载用户的回调函数
