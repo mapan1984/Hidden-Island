@@ -15,7 +15,7 @@
         <h3 id="comments">输入评论</h3>
         {{ wtf.quick_form(form) }}
       {% else %}
-        <a href="{{ url_for('auth.login') }}">log in before commit comment</a>
+        <a href="{{ url_for('auth.login', next=article_name) }}">log in before commit comment</a>
       {% endif %}
       </div>
       <ul class="comments">

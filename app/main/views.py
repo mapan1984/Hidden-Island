@@ -36,8 +36,9 @@ def article(article_name):
         flash('You comment has been published.')
         return redirect(url_for('main.article', article_name=article.name))
     return render_template('article.html',
-                           content=article.body,
                            form=form,
+                           article_name=article.name,
+                           content=article.body,
                            comments=article.comments)
 
 @main.route('/categories')
