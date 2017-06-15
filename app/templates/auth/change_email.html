@@ -3,13 +3,13 @@
 
 {% block title %}Change Email Address{% endblock %}
 
-{% block blog_header %}
-<div class="page-header">
+{% block header %}
+<div class="page-header container">
     <h1>Change Your Email Address</h1>
 </div>
 {% endblock %}
 
-{% block blog_content %}
+{% block content %}
 <div class="auth-form">
     {{ wtf.quick_form(form) }}
 </div>

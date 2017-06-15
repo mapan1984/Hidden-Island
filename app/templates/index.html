@@ -1,7 +1,7 @@
 {% extends "_layouts/default.html" %}
 {% import '_includes/macros.html' as macros %}
 
-{% block blog_main %}
+{% block main_content %}
   <ul class="articles">
     {% for article in articles %}
     <li class="article">
@@ -19,7 +19,7 @@
   </div>
 {% endblock %}
 
-{% block blog_archives %}
+{% block archives %}
 <h4>Archives</h4>
 <ol class="list-unstyled">
   {% for archive in archives %}
