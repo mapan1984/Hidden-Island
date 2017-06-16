@@ -1,12 +1,11 @@
 from flask import render_template, request, flash, redirect, url_for
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from app import db
 from config import Config
 from app.main import main
-from app.main.forms import CommentForm
+from app.main.forms import CommentForm, EditProfileForm
 from app.models import Category, Tag, Article, Comment, Permission, User
-
 
 
 @main.app_context_processor
@@ -75,3 +74,20 @@ def user(username):
     if user is None:
         abort(404)
     return render_template('user.html', user=user)
+
+@main.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.location = form.location.data
+        current_user.about_me = form.about_me.data
+        db.session.add(current_user)
+        flash('Your profile has been updated.')
+        return redirect(url_for('.user', username=current_user.username))
+    form.name.data = current_user.name
+    form.location.data = current_user.location
+    form.about_me.data = current_user.about_me
+    return render_template('edit_profile.html', form=form)
+
