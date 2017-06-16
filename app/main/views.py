@@ -5,13 +5,15 @@ from app import db
 from config import Config
 from app.main import main
 from app.main.forms import CommentForm
-from app.models import Category, Tag, Article, Comment, Permission
+from app.models import Category, Tag, Article, Comment, Permission, User
+
 
 
 @main.app_context_processor
 def inject_permissions():
     """将Permission类加入模板上下文"""
     return dict(Permission=Permission)
+
 
 @main.route('/')
 def index():
@@ -25,6 +27,7 @@ def index():
                            pagination=pagination,
                            articles=articles,
                            archives=Article.query.limit(10).all())
+
 
 @main.route('/<article_name>', methods=['GET', 'POST'])
 def article(article_name):
@@ -47,18 +50,28 @@ def article(article_name):
                            content=article.body,
                            comments=article.comments)
 
+
 @main.route('/categories')
 def categories():
     return render_template('category.html',
                            categories=Category.query.all())
+
 
 @main.route('/tags')
 def tags():
     return render_template('tag.html',
                            tags=Tag.query.all())
 
+
 @main.route('/archives')
 def archives():
     return render_template('archives.html',
                            articles=Article.query.all())
 
+
+@main.route('/user/<username>')
+def user(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    return render_template('user.html', user=user)

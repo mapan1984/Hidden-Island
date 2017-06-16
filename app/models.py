@@ -58,8 +58,12 @@ class Role(db.Model):
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True)
+    location = db.Column(db.String(64))
+    about_me = db.Column(db.Text())
+    member_since = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
+    email = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -102,6 +106,11 @@ class User(UserMixin, db.Model):
             db.session.add(user)
             db.session.commit()
         print('Add admin is done.')
+
+    def ping(self):
+        """刷新用户的最后访问时间"""
+        self.last_seen = datetime.datetime.utcnow()
+        db.session.add(self)
 
     @property
     def password(self):
