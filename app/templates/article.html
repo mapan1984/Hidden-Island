@@ -3,12 +3,39 @@
 
 {% block title %}{% endblock %}
 
+{% block head %}
+{{ super() }}
+<link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML">
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="row">
   <div class="col-sm-8">
-    <div class="article">
-      {{ content|safe }}
-    </div>
+    <div class="blog-post">
+      <div class="blog-post-info">
+        <div class="column">
+          <h2 class="blog-post-title">
+            <a href="/{{article.name}}">{{article.title}}</a>
+          </h2>
+          <p class="blog-post-date">{% if article.datestr %}{{ article.datestr }}{% else %}{{ article.date }}{% endif %}</p>
+        </div>
+        <div class="column">
+          {% for tag in article.tags %}
+            <a href="/tags">
+              <span class="label label-primary">Tag: {{ tag.name }}</span>
+            </a>
+          {% endfor %}
+          <a href="/categories">
+            <span class="label label-default">Category: {{ article.category.name }}</span>
+          </a>
+        </div>
+      </div><!-- /.blog-post-info -->
+      {# 渲染文章内容，不转义 #}
+      {{ article.body_html|safe }}
+    </div><!-- /.blog-post -->
     <div class="comment">
       <div class="comment-form">
       {% if current_user.is_authenticated %}

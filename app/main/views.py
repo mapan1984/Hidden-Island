@@ -1,10 +1,13 @@
-from flask import render_template, request, flash, redirect, url_for
+import datetime
+
+from flask import render_template, request, flash, redirect, url_for, \
+                  current_app
 from flask_login import current_user, login_required
 
 from app import db
-from config import Config
 from app.main import main
-from app.main.forms import CommentForm, EditProfileForm
+from app.decorators import author_required
+from app.main.forms import CommentForm, EditProfileForm, EditArticleForm
 from app.models import Category, Tag, Article, Comment, Permission, User
 
 
@@ -18,7 +21,8 @@ def inject_permissions():
 def index():
     page = request.args.get('page', 1, type=int)
     pagination = Article.query.paginate(
-            page, per_page=Config.ARTICLES_PAGINATE, error_out=False)
+            page, per_page=current_app.config['ARTICLES_PAGINATE'],
+            error_out=False)
     articles = []
     for article in pagination.items:
         articles.append(article)
@@ -45,10 +49,7 @@ def article(article_name):
         return redirect(url_for('main.article', article_name=article.name))
     return render_template('article.html',
                            form=form,
-                           article_name=article.name,
-                           content=article.body,
-                           comments=article.comments)
-
+                           article=article)
 
 @main.route('/categories')
 def categories():
@@ -73,7 +74,17 @@ def user(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
         abort(404)
-    return render_template('user.html', user=user)
+
+    page = request.args.get('page', 1, type=int)
+    pagination = user.articles.paginate(
+            page, per_page=current_app.config['ARTICLES_PAGINATE'],
+            error_out=False)
+    articles = []
+    for article in pagination.items:
+        articles.append(article)
+    return render_template('user.html', user=user,
+                           pagination=pagination, articles=articles)
+
 
 @main.route('/edit-profile', methods=['GET', 'POST'])
 @login_required
@@ -90,4 +101,54 @@ def edit_profile():
     form.location.data = current_user.location
     form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', form=form)
+
+
+@main.route('/edit-article', methods=['GET', 'POST'])
+@author_required
+def edit_article():
+    form = EditArticleForm()
+    if current_user.can(Permission.WRITE_ARTICLES) and \
+            form.validate_on_submit():
+        article = Article(title=form.title.data,
+                          name=form.title.data,
+                          body=form.body.data,
+                          date=datetime.date.today(),
+                          author=current_user._get_current_object())
+        category=Category.query.get(form.category.data)
+        article.change_category(category)
+        article.delete_tags()
+        article.add_tags(form.tags.data.split(' '))
+        db.session.add(article)
+        return redirect(url_for('main.article', article_name=article.name))
+    return render_template('edit_article.html', form=form)
+
+@main.route('/modify-article/<article_name>', methods=['GET', 'POST'])
+@author_required
+def modify_article(article_name):
+    article = Article.query.filter_by(name=article_name).first_or_404()
+    form = EditArticleForm(article=article)
+    if current_user != article.author \
+            and not current_user.can(Permission.ADMINISTER):
+        abort(403)
+    if current_user.can(Permission.WRITE_ARTICLES) \
+            and form.validate_on_submit():
+        article.title = form.title.data
+        if article.name is None:
+            article.name = form.title.data
+        article.body = form.body.data
+
+        category=Category.query.get(form.category.data)
+        article.change_category(category)
+
+        article.delete_tags()
+        article.add_tags(form.tags.data.split(' '))
+
+        db.session.add(article)
+        flash('You article has been modified.')
+        return redirect(url_for('main.article', article_name=article.name))
+    form.title.data = article.title
+    form.category.data = article.category.id
+    form.tags.data = " ".join(tag.name for tag in article.tags)
+    form.body.data = article.body
+    return render_template('edit_article.html', form=form)
 

@@ -1,9 +1,8 @@
 import os
 import os.path
 import hashlib
-import markdown
 import bleach
-import datetime
+from datetime import datetime
 
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,6 +12,8 @@ from flask_login import UserMixin, AnonymousUserMixin
 
 from app import db, login_manager
 from config import Config
+from app.misc import MD, convert_date
+
 
 ##### Auth
 class Permission:
@@ -22,12 +23,16 @@ class Permission:
     MODERATE_COMMENTS = 0x08
     ADMINISTER = 0x80
 
+
 class Role(db.Model):
     __tablename__ = 'roles'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
     permissions = db.Column(db.Integer)
+
+    # relationship
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     @staticmethod
@@ -55,20 +60,27 @@ class Role(db.Model):
     def __repr__(self):
         return '<Role %r>' % self.name
 
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64))
     username = db.Column(db.String(64), unique=True)
     location = db.Column(db.String(64))
     about_me = db.Column(db.Text())
-    member_since = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
-    last_seen = db.Column(db.DateTime(), default=datetime.datetime.utcnow)
     email = db.Column(db.String(64), unique=True, index=True)
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    member_since = db.Column(db.DateTime(), default=datetime.utcnow)
+    last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    # relationship
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    articles = db.relationship('Article', backref='author', lazy='dynamic')
+
+    # ForeignKey
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
     def __init__(self, **kwargs):
         """
@@ -110,7 +122,7 @@ class User(UserMixin, db.Model):
 
     def ping(self):
         """刷新用户的最后访问时间"""
-        self.last_seen = datetime.datetime.utcnow()
+        self.last_seen = datetime.utcnow()
         db.session.add(self)
 
     @property
@@ -200,13 +212,17 @@ login_manager.anonymous_user = AnonymousUser
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 ##### Articles
 class Category(db.Model):
     __tablename__ = 'categories'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    articles = db.relationship('Article', backref='category', lazy='dynamic')
     size = db.Column(db.Integer, default=0)
+
+    # relationship
+    articles = db.relationship('Article', backref='category', lazy='dynamic')
 
     __mapper_args__ = {"order_by": desc(size)}
 
@@ -221,18 +237,10 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
-belong_to = db.Table(
-    'belong_to',
-    db.Column('tag_id', db.Integer,
-              db.ForeignKey('tags.id'),
-              primary_key=True),
-    db.Column('article_id', db.Integer,
-              db.ForeignKey('articles.id'),
-              primary_key=True)
-)
 
 class Tag(db.Model):
     __tablename__ = 'tags'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     size = db.Column(db.Integer, default=0)
@@ -251,62 +259,45 @@ class Tag(db.Model):
         return '<Tag %r>' % self.name
 
 
-MONTH_MAP = {
-    "Jan": 1,
-    "Feb": 2,
-    "Mar": 3,
-    "Apr": 4,
-    "May": 5,
-    "Jun": 6,
-    "Jul": 7,
-    "Aug": 8,
-    "Sep": 9,
-    "Oct": 10,
-    "Nov": 11,
-    "Dec": 12
-}
-
-# Thu Apr 27 21:24:32 CST 2017 --> 2017-4-27
-def convert_date(date):
-    _, month, day, _, _, year = date.split(' ')
-    month = MONTH_MAP[month]
-    return datetime.date(int(year), month, int(day))
-
-# markdown
-MD = markdown.Markdown(
-    extensions=[
-        "markdown.extensions.codehilite(css_class=highlight,linenums=None)",
-        "markdown.extensions.meta",
-        "markdown.extensions.tables",
-        "markdown.extensions.toc",
-    ]
+belong_to = db.Table(
+    'belong_to',
+    db.Column('tag_id', db.Integer,
+              db.ForeignKey('tags.id'),
+              primary_key=True),
+    db.Column('article_id', db.Integer,
+              db.ForeignKey('articles.id'),
+              primary_key=True)
 )
+
 
 class Article(db.Model):
     __tablename__ = 'articles'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, index=True)
     title = db.Column(db.String(64), unique=True)
     datestr = db.Column(db.String(64))
     date = db.Column(db.Date)
     body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
     md5 = db.Column(db.String(32))
+
+    # relationship
     tags = db.relationship('Tag',
                            secondary=belong_to,
                            backref=db.backref('articles', lazy='dynamic'),
                            lazy='dynamic')
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     comments = db.relationship('Comment', backref='article', lazy='dynamic')
+
+    # ForeignKey
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     __mapper_args__ = {"order_by": desc(date)}
 
     @property
     def md_name(self):
         return self.name+'.md'
-
-    @property
-    def html_name(self):
-        return self.name+'.html'
 
     @property
     def sc_path(self):
@@ -343,23 +334,26 @@ class Article(db.Model):
             self.tags.append(tag)
 
     def delete_tags(self):
-        """删除文章的tags"""
+        """删除文章的所有tag"""
         for tag in self.tags.all():
             tag.size -= 1
             self.tags.remove(tag)
             if tag.size == 0:
                 db.session.delete(tag)
 
-    def change_category(self, category_name):
+    def change_category(self, category):
         """该变文章的category(如果之前不存在category则增加)"""
         old_category = self.category
-        new_category = Category.query.filter_by(name=category_name).first()
+        if isinstance(category, str):
+            new_category = Category.query.filter_by(name=category).first()
+        else:
+            new_category = category
 
         if old_category is not None and new_category == old_category:
             return None
 
         if new_category is None:
-            new_category = Category(name=category_name, size=0)
+            new_category = Category(name=category, size=0)
 
         if old_category is not None:
             old_category.size -= 1
@@ -370,33 +364,26 @@ class Article(db.Model):
         db.session.add(new_category)
         self.category = new_category
 
+    @staticmethod
+    def on_change_body(target, value, oldvalue, initiator):
+        target.body_html = MD.convert(value)
+
     def relog(self):
-        """文章记录已存在，更新文章纪录中各属性"""
+        """`/articles`目录中的文章，文章记录已存在，更新文章记录中各属性"""
         with open(self.sc_path, "r", encoding="utf-8") as scfd:
-            content = MD.convert(scfd.read())
+            self.body = scfd.read()
+            self.body_html = MD.convert(self.body)
 
-        title         = MD.Meta.get('title')[0]
-        datestr       = MD.Meta.get('date')[0]
-        date          = convert_date(datestr)
-        category_name = MD.Meta.get('category')[0]
-        tag_names     = MD.Meta.get('tag')
-
-        destination_html = render_template('_layouts/content.html',
-                                           name=self.name,
-                                           title=title,
-                                           datestr=datestr,
-                                           category=category_name,
-                                           tags=tag_names,
-                                           content=content)
-
-        self.title   = title
-        self.body    = destination_html
+        self.title   = MD.Meta.get('title', [''])[0]
+        self.datestr = MD.Meta.get('date', [''])[0]
+        self.date    = convert_date(self.datestr)
         self.md5     = self.get_md5()
-        self.datestr = datestr
-        self.date    = date
+        self.author  = User.query.filter_by(username='admin').first()
 
+        category_name = MD.Meta.get('category', [''])[0]
         self.change_category(category_name)
 
+        tag_names     = MD.Meta.get('tag')
         self.delete_tags()
         self.add_tags(tag_names)
 
@@ -456,14 +443,20 @@ class Article(db.Model):
     def __repr__(self):
         return '<Article %r>' % self.name
 
+db.event.listen(Article.body, 'set', Article.on_change_body)
+
+
 class Comment(db.Model):
     __tablename__ = 'comments'
+
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, index=True,
-                          default=datetime.datetime.utcnow)
+                          default=datetime.utcnow)
     disabled = db.Column(db.Boolean)
+
+    # ForeignKey
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
 

@@ -105,16 +105,23 @@ ul.articles {
 
 ul > li.article {
   display: flex;
-  display: -webkit-flex;
-  flex-direction: row;
+  dispaly: -webkit-flex;
   justify-content: space-between;
   padding: 8px;
-  min-height: 24px;
   border-bottom: 1px solid #e0e0e0;
 }
 
-li.article:hover {
+ul.articles li.article:hover {
   background-color: #f0f0f0;
+}
+div.article-date {
+    color: #999;
+}
+div.article-author {
+    font-weight: bold;
+}
+div.edit {
+    text-align: right;
 }
 
 /*
@@ -140,7 +147,7 @@ li.article:hover {
   font-size: 40px;
   color: #428bca;
 }
-.blog-post-meta {
+.blog-post-date {
   color: #999;
 }
 

@@ -2,20 +2,9 @@
 {% import '_includes/macros.html' as macros %}
 
 {% block main_content %}
-  <ul class="articles">
-    {% for article in articles %}
-    <li class="article">
-      <div class="article-title">
-        <a href="/{{ article.name }}">{{ article.title }}</a>
-      </div>
-      <div class="article-date">
-        {{ article.date }}
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
+  {% include '_includes/articles.html'%}
   <div>
-    {{ macros.pagination_widget(pagination, '.index') }}
+    {{ macros.pagination_widget(pagination, 'main.index') }}
   </div>
 {% endblock %}
 

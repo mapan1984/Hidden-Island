@@ -20,3 +20,5 @@ def permission_required(permission):
 def admin_required(fun):
     return permission_required(Permission.ADMINISTER)(fun)
 
+def author_required(fun):
+    return permission_required(Permission.WRITE_ARTICLES)(fun)

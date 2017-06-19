@@ -1,0 +1,21 @@
+{% extends "_layouts/default.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Edit Article{% endblock %}
+
+{% block header %}
+<div class="page-header container">
+    <h1>Edit Your Article</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+{{ wtf.quick_form(form) }}
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+{{ pagedown.include_pagedown() }}
+<script src="{{ url_for('static', filename='scripts/edit.js') }}"></script>
+{% endblock %}
+
