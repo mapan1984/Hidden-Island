@@ -1,5 +1,6 @@
 {% extends "_layouts/default.html" %}
-{% import '_includes/macros.html' as macros %}
+{% from '_macros/pagination.html' import pagination_widget %}
+{% from '_macros/articles.html' import render_articles_list with context %}
 
 {% block title %}{{ user.username }}{% endblock %}
 
@@ -17,7 +18,7 @@
   </p>
   {% endif %}
 
-  {% if current_user.is_administrator %}
+  {% if current_user.is_authenticated and current_user.is_administrator %}
   <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
   {% endif %}
 
@@ -29,7 +30,7 @@
     {% if user == current_user %}
     <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">Edit Profile</a>
     {% endif %}
-    {% if current_user.is_administrator %}
+    {% if current_user.is_authenticated and current_user.is_administrator %}
     <a class="btn btn-danger" href="{{ url_for('admin.edit_profile_admin', id=user.id) }}">Edit Profile [Admin]</a>
     {% endif %}
   </p>
@@ -38,9 +39,9 @@
 {% endblock %}
 
 {% block content %}
-  {% include '_includes/articles.html'%}
+  {{ render_articles_list(articles) }}
   <div>
-    {{ macros.pagination_widget(pagination, 'main.user', username=user.username) }}
+    {{ pagination_widget(pagination, 'main.user', username=user.username) }}
   </div>
 {% endblock %}
 

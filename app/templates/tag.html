@@ -1,8 +1,8 @@
 {% extends "_layouts/default.html" %}
-{% import '_includes/macros.html' as macros %}
+{% from '_macros/tab.html' import render_tab_page with context %}
 
 {% block title %}Tag{% endblock %}
 
 {% block content %}
-  {{ macros.render_tab_page(tags) }}
+  {{ render_tab_page(tags) }}
 {% endblock %}

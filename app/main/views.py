@@ -1,7 +1,7 @@
 import datetime
 
 from flask import render_template, request, flash, redirect, url_for, \
-                  current_app
+                  current_app, abort
 from flask_login import current_user, login_required
 
 from app import db
@@ -122,6 +122,20 @@ def edit_article():
         db.session.add(article)
         return redirect(url_for('main.article', article_name=article.name))
     return render_template('edit_article.html', form=form)
+
+
+@main.route('/delete-article/<article_name>')
+@author_required
+def delete_article(article_name):
+    article = Article.query.filter_by(name=article_name).first_or_404()
+    if current_user != article.author \
+            and not current_user.can(Permission.ADMINISTER):
+        abort(403)
+    else:
+        flash(article.delete_html())
+        return redirect(request.args.get('next')
+                    or url_for('main.user', username=current_user.username))
+
 
 @main.route('/modify-article/<article_name>', methods=['GET', 'POST'])
 @author_required

@@ -1,10 +1,11 @@
 {% extends "_layouts/default.html" %}
-{% import '_includes/macros.html' as macros %}
+{% from '_macros/pagination.html' import pagination_widget %}
+{% from '_macros/articles.html' import render_articles_list with context %}
 
 {% block main_content %}
-  {% include '_includes/articles.html'%}
+  {{ render_articles_list(articles) }}
   <div>
-    {{ macros.pagination_widget(pagination, 'main.index') }}
+    {{ pagination_widget(pagination, 'main.index') }}
   </div>
 {% endblock %}
 

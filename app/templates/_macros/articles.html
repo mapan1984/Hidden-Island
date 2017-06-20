@@ -1,3 +1,13 @@
+{#
+args:
+  articles：article实例组成的列表，例如`Article.query.all()`
+use:
+  {% from "macros/articles.html" import render_articles_list with context %}
+  *需要用的`current_user`，所以导入时需`with context`*
+ouput：
+  article列表
+#}
+{% macro render_articles_list(articles) %}
 <ul class="articles">
   {% for article in articles %}
   <li class="article">
@@ -17,9 +27,15 @@
           <a href="{{ url_for('main.modify_article', article_name=article.name) }}">
             <span class="label label-primary">Edit</span>
           </a>
+          <a href="{{ url_for('main.delete_article', article_name=article.name, next='/user/'+article.author.username) }}">
+            <span class="label label-danger">Delete</span>
+          </a>
         {% elif current_user.is_administrator %}
           <a href="{{ url_for('main.modify_article', article_name=article.name) }}">
-            <span class="label label-danger">Edit [Admin]</span>
+            <span class="label label-primary">Edit [Admin]</span>
+          </a>
+          <a href="{{ url_for('main.delete_article', article_name=article.name, next='/user/'+article.author.username) }}">
+            <span class="label label-danger">Delete [Admin]</span>
           </a>
         {% endif %}
       {% endif %}
@@ -28,3 +44,4 @@
   </li>
   {% endfor %}
 </ul>
+{% endmacro %}

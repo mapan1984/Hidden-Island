@@ -1,0 +1,43 @@
+{#
+args:
+  items: Category.query.all()或Tag.query.all()
+use:
+  {% from "macros/tab.html" import render_tab_page %}
+ouput：
+  分页导航
+#}
+
+{% from '_macros/articles.html' import render_articles_list with context %}
+
+{% macro render_tab_page(items) %}
+  <ul class="nav nav-pills" role="tablist">
+    {% for item in items %}
+      {% if item == items[0] %}
+        <li role="presentation" class="active">
+          <a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">
+             {{ item.name }} <span class="badge">{{ item.size }}</span>
+          </a>
+        </li>
+      {% else %}
+        <li role="presentation">
+          <a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">
+             {{ item.name }} <span class="badge">{{ item.size }}</span>
+          </a>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+  <div class="tab-content">
+    {% for item in items %}
+      {% if item == items[0] %}
+        <div role="tabpanel" class="tab-pane fade in active" id="{{ item.name }}">
+          {{ render_articles_list(item.articles) }}
+        </div>
+      {% else %}
+        <div role="tabpanel" class="tab-pane fade" id="{{ item.name }}">
+          {{ render_articles_list(item.articles) }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endmacro %}
