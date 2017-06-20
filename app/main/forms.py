@@ -20,8 +20,8 @@ class EditProfileForm(FlaskForm):
 
 class EditArticleForm(FlaskForm):
     title = StringField('Title', validators=[Required(), Length(1, 64)])
-    category = SelectField('category', coerce=int)
-    tags = StringField('tags', validators=[Length(0, 64)])
+    category = SelectField('Category', coerce=int)
+    tags = StringField('Tags', validators=[Length(0, 64)])
     body = PageDownField("What's on your mind?", validators=[Required()])
     submit = SubmitField('Submit')
 

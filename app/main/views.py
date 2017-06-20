@@ -7,6 +7,7 @@ from flask_login import current_user, login_required
 from app import db
 from app.main import main
 from app.decorators import author_required
+from app.sim import similarity
 from app.main.forms import CommentForm, EditProfileForm, EditArticleForm
 from app.models import Category, Tag, Article, Comment, Permission, User
 
@@ -107,8 +108,8 @@ def edit_profile():
 @author_required
 def edit_article():
     form = EditArticleForm()
-    if current_user.can(Permission.WRITE_ARTICLES) and \
-            form.validate_on_submit():
+    if current_user.can(Permission.WRITE_ARTICLES) \
+            and form.validate_on_submit():
         article = Article(title=form.title.data,
                           name=form.title.data,
                           body=form.body.data,
@@ -151,4 +152,19 @@ def modify_article(article_name):
     form.tags.data = " ".join(tag.name for tag in article.tags)
     form.body.data = article.body
     return render_template('edit_article.html', form=form)
+
+
+@main.route('/search', methods=['POST'])
+def search():
+    articles = []
+    keys = request.form['keys']
+    for article in Article.query.all():
+        article_content = "".join([article.body]
+                                  + [article.title]*3
+                                  + [article.category.name]*3
+                                  + [tag.name for tag in article.tags]*3)
+        sim = similarity(article_content, keys)
+        articles.append((sim, article))
+    articles.sort(key=lambda x:x[0], reverse=True)
+    return render_template('search.html', articles=articles[:20])
 

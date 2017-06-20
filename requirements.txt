@@ -11,6 +11,9 @@ Flask-SQLAlchemy==2.1
 Flask-WTF==0.13.1
 Flask-PageDown==0.2.2
 
+# search
+jieba==0.38
+
 # Markdown
 Markdown==2.6.6
 Pygments==2.2.0

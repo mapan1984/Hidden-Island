@@ -20,10 +20,16 @@
         <li><a href="/tags">Tag</a></li>
         <li><a href="/archives">Archive</a></li>
       </ul>
+      <form action="/search" method="post" class="navbar-form navbar-left">
+        <div class="form-group">
+          <input type="search" class="form-control" placeholder="Search" name="keys" autocomplete="on">
+        </div>
+        <button type="submit" class="btn btn-default">Search</button>
+      </form>
       <ul class="nav navbar-nav navbar-right">
       {% if current_user.is_authenticated %}
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" 
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown"
             role="button" aria-haspopup="true" aria-expanded="false">
             More<span class="caret"></span>
           </a>
