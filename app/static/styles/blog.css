@@ -118,70 +118,11 @@ div.article-date {
     color: #999;
 }
 div.article-author {
+    text-align: right;
     font-weight: bold;
 }
 div.edit {
     text-align: right;
-}
-
-/*
- * Blog posts
- */
-
-.blog-post {
-  margin-bottom: 60px;
-
-}
-.blog-post-info {
-  display: flex;
-  justify-content: space-between;
-  dispaly: -webkit-flex;
-}
-.column {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-}
-.blog-post-title {
-  margin-bottom: 5px;
-  font-size: 40px;
-  color: #428bca;
-}
-.blog-post-date {
-  color: #999;
-}
-
-/*
- * Comments
- */
-div.comment {
-  margin: 20px auto;
-  padding: 5px;
-  border-top: 1px solid #e0e0e0;
-}
-ul.comments {
-  list-style-type: none;
-  padding: 0px;
-  margin: 16px 0px 0px 0px;
-}
-ul.comments li.comment {
-  padding: 8px;
-  border-bottom: 1px solid #e0e0e0;
-}
-ul.comments li.comment:nth-child(1) {
-  border-top: 1px solid #e0e0e0;
-}
-ul.comments li.comment:hover {
-  background-color: #f0f0f0;
-}
-div.comment-date {
-  float: right;
-}
-div.comment-author {
-  font-weight: bold;
-}
-div.comment-form {
-  margin: 16px auto;
 }
 
 /*

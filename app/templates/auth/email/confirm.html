@@ -1,8 +1,8 @@
-<p>Dear {{ user.username }},</p>
-<p>Welcome to <b>Hidden Island</b>!</p>
-<p>To confirm your account please <a href="{{ url_for('auth.confirm', token=token, _external=True) }}">click here</a>.</p>
-<p>Alternatively, you can paste the following link in your browser's address bar:</p>
+<p>尊敬的用户： {{ user.username }},</p>
+<p>欢迎来到<b>Hidden Island</b>!</p>
+<p>确认您的账户：<a href="{{ url_for('auth.confirm', token=token, _external=True) }}">点击这里</a>.</p>
+<p>如果以上链接无法点击，请复制以下地址到浏览器地址栏：</p>
 <p>{{ url_for('auth.confirm', token=token, _external=True) }}</p>
-<p>Sincerely,</p>
-<p>The Hidden Island Team</p>
-<p><small>Note: replies to this email address are not monitored.</small></p>
+<p>您真诚的，</p>
+<p>Hidden Island团队</p>
+<p><small>注意：不要回复此邮件</small></p>

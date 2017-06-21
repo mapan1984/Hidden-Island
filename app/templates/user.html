@@ -13,7 +13,7 @@
   <p>
     {% if user.name %}{{ user.name }}{% endif %}
     {% if user.location %}
-        From <a href="http://maps.google.com/?q={{ user.location }}">{{ user.location }}</a>
+      来自 <a href="http://maps.google.com/?q={{ user.location }}">{{ user.location }}</a>
     {% endif %}
   </p>
   {% endif %}
@@ -24,14 +24,15 @@
 
   {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
 
-  <p>Member since {{ moment(user.member_since).format('LLL') }}. Last seen {{ moment(user.last_seen).fromNow(refresh=True) }}.</p>
+  <p>加入日期: {{ moment(user.member_since).format('LLL') }}</p>
+  <p>上次访问: {{ moment(user.last_seen).fromNow(refresh=True) }}</p>
 
   <p>
     {% if user == current_user %}
-    <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">Edit Profile</a>
+    <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">修改信息</a>
     {% endif %}
     {% if current_user.is_authenticated and current_user.is_administrator %}
-    <a class="btn btn-danger" href="{{ url_for('admin.edit_profile_admin', id=user.id) }}">Edit Profile [Admin]</a>
+    <a class="btn btn-danger" href="{{ url_for('admin.edit_profile_admin', id=user.id) }}">修改信息 [Admin]</a>
     {% endif %}
   </p>
 

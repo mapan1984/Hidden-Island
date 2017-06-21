@@ -46,7 +46,7 @@ def article(article_name):
                           article=article,
                           author=current_user._get_current_object())
         db.session.add(comment)
-        flash('You comment has been published.')
+        flash('您的评论已经发布')
         return redirect(url_for('main.article', article_name=article.name))
     return render_template('article.html',
                            form=form,
@@ -96,7 +96,7 @@ def edit_profile():
         current_user.location = form.location.data
         current_user.about_me = form.about_me.data
         db.session.add(current_user)
-        flash('Your profile has been updated.')
+        flash('你的个人信息已被更新')
         return redirect(url_for('.user', username=current_user.username))
     form.name.data = current_user.name
     form.location.data = current_user.location
@@ -118,7 +118,7 @@ def edit_article():
         category=Category.query.get(form.category.data)
         article.change_category(category)
         article.delete_tags()
-        article.add_tags(form.tags.data.split(' '))
+        article.add_tags(form.tags.data.strip().split(' '))
         db.session.add(article)
         return redirect(url_for('main.article', article_name=article.name))
     return render_template('edit_article.html', form=form)
@@ -159,7 +159,7 @@ def modify_article(article_name):
         article.add_tags(form.tags.data.split(' '))
 
         db.session.add(article)
-        flash('You article has been modified.')
+        flash('您的文章已经成功修改')
         return redirect(url_for('main.article', article_name=article.name))
     form.title.data = article.title
     form.category.data = article.category.id

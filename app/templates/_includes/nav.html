@@ -15,40 +15,40 @@
     </div><!-- navbar-header -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav main-nav">
-        <li><a href="/" accesskey="1">Home</a></li>
-        <li><a href="/categories">Category</a></li>
-        <li><a href="/tags">Tag</a></li>
-        <li><a href="/archives">Archive</a></li>
+        <li><a href="/" accesskey="1">首页</a></li>
+        <li><a href="/categories">目录</a></li>
+        <li><a href="/tags">标签</a></li>
+        <li><a href="/archives">历史</a></li>
       </ul>
       <form action="/search" method="post" class="navbar-form navbar-left">
         <div class="form-group">
-          <input type="search" class="form-control" placeholder="Search" name="keys" autocomplete="on">
+          <input type="search" class="form-control" placeholder="搜索相关文章" name="keys" autocomplete="on">
         </div>
-        <button type="submit" class="btn btn-default">Search</button>
+        <button type="submit" class="btn btn-default">搜索</button>
       </form>
       <ul class="nav navbar-nav navbar-right">
       {% if current_user.is_authenticated %}
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown"
             role="button" aria-haspopup="true" aria-expanded="false">
-            More<span class="caret"></span>
+            更多<span class="caret"></span>
           </a>
           <ul class="dropdown-menu">
             {% if current_user.is_administrator %}
-            <li><a href="{{ url_for('admin.index') }}">Admin</a></li>
+            <li><a href="{{ url_for('admin.index') }}">管理</a></li>
             {% endif %}
             {% if current_user.can(Permission.WRITE_ARTICLES) %}
-            <li><a href="{{ url_for('main.edit_article') }}">Post</a></li>
+            <li><a href="{{ url_for('main.edit_article') }}">写作</a></li>
             {% endif %}
-            <li><a href="{{ url_for('main.user', username=current_user.username) }}">Profile</a></li>
+            <li><a href="{{ url_for('main.user', username=current_user.username) }}">我的主页</a></li>
             <li role="separator" class="divider"></li>
-            <li><a href="{{ url_for('auth.change_password') }}">Change Password</a></li>
-            <li><a href="{{ url_for('auth.change_email_request') }}">Change Email</a></li>
-            <li><a href="{{ url_for('auth.logout') }}">Log Out</a></li>
+            <li><a href="{{ url_for('auth.change_password') }}">修改密码</a></li>
+            <li><a href="{{ url_for('auth.change_email_request') }}">修改邮件</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">退出</a></li>
           </ul>
         </li>
       {% else %}
-        <li><a href="{{ url_for('auth.login') }}">Sign In</a></li>
+        <li><a href="{{ url_for('auth.login') }}">登录</a></li>
       {% endif %}
       </ul>
     </div><!-- navbar-collapse -->

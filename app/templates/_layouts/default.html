@@ -32,7 +32,7 @@
     {% block header %}
     <header class="container">
       <h1 class="blog-title">Hidden Island</h1>
-      <p class="lead blog-description">The best time to plant a tree was 10 years ago, The second best time is now.</p>
+      <p class="lead blog-description">种一棵树最好的时间是十年前，其次是现在。</p>
     </header>
     {% endblock %}
 
@@ -40,13 +40,14 @@
       {% block content %}
       <div class="row">
         <div class="col-sm-8 blog-main">
-          {% block main_content %}
+          {% block blog_main %}
           {% endblock %}
         </div><!-- /.blog-main -->
 
         <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+          {% block blog_sidebar %}
           <div class="sidebar-module sidebar-module-inset">
-            <h4>About</h4>
+            <h4>关于</h4>
             <p>本博客使用<em>Flask</em>进行开发，托管平台为<em>Heroku</em>。用于发布自己的学习笔记，总结、强化所学的知识，并分享自己的想法。</p>
           </div>
           <div class="sidebar-module">
@@ -54,13 +55,14 @@
             {% endblock %}
           </div>
           <div class="sidebar-module">
-            <h4>Elsewhere</h4>
+            <h4>联系管理员</h4>
             <ol class="list-unstyled">
               <li><a href="https://github.com/mapan1984">GitHub</a></li>
               <li><a href="https://twitter.com/mapan2001">Twitter</a></li>
               <li><a href="https://www.facebook.com/mapan1984">Facebook</a></li>
             </ol>
           </div>
+          {% endblock %}
         </div><!-- /.blog-sidebar -->
       </div><!-- /.row -->
       {% endblock %} <!-- blog_content -->

@@ -3,9 +3,19 @@
 
 {% block title %}Edit Article{% endblock %}
 
+{% block head %}
+{{ super() }}
+<style>
+/* 动态为footer添加类fixed-bottom */
+.fixed-bottom {
+  position: static;
+}
+</style>
+ {% endblock %} 
+
 {% block header %}
 <div class="page-header container">
-    <h1>Edit Your Article</h1>
+  <h1>发布文章</h1>
 </div>
 {% endblock %}
 

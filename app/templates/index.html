@@ -2,7 +2,7 @@
 {% from '_macros/pagination.html' import pagination_widget %}
 {% from '_macros/articles.html' import render_articles_list with context %}
 
-{% block main_content %}
+{% block blog_main %}
   {{ render_articles_list(articles) }}
   <div>
     {{ pagination_widget(pagination, 'main.index') }}
@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block archives %}
-<h4>Archives</h4>
+<h4>历史</h4>
 <ol class="list-unstyled">
   {% for archive in archives %}
   <li>

@@ -8,22 +8,22 @@ from app.models import Category
 
 class CommentForm(FlaskForm):
     body = StringField('', validators=[Required()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('提交评论')
 
 
 class EditProfileForm(FlaskForm):
-    name = StringField('Real name', validators=[Length(0, 64)])
-    location = StringField('Location', validators=[Length(0, 64)])
-    about_me = TextAreaField('About me')
-    submit = SubmitField('Submit')
+    name = StringField('真实姓名', validators=[Length(0, 64)])
+    location = StringField('地址', validators=[Length(0, 64)])
+    about_me = TextAreaField('关于我')
+    submit = SubmitField('提交')
 
 
 class EditArticleForm(FlaskForm):
-    title = StringField('Title', validators=[Required(), Length(1, 64)])
-    category = SelectField('Category', coerce=int)
-    tags = StringField('Tags', validators=[Length(0, 64)])
-    body = PageDownField("What's on your mind?", validators=[Required()])
-    submit = SubmitField('Submit')
+    title = StringField('题目', validators=[Required(), Length(1, 64)])
+    category = SelectField('分类', coerce=int)
+    tags = StringField('标签', validators=[Length(0, 64)])
+    body = PageDownField("文章内容", validators=[Required()])
+    submit = SubmitField('提交')
 
     def __init__(self, article=None, *args, **kwargs):
         super(EditArticleForm, self).__init__(*args, **kwargs)

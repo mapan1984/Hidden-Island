@@ -42,9 +42,9 @@ def upload():
         # 生成html与数据库记录
         Article.render(name=filename.rsplit('.')[0])
 
-        flash("upload %s secceed" % filename)
+        flash("上传 %s 成功" % filename)
     else:
-        flash("upload %s failed" % filename)
+        flash("上传 %s 失败" % filename)
     return redirect(url_for('admin.index'))
 
 @admin.route('/admin/render/<article_name>')
@@ -108,7 +108,7 @@ def edit_profile_admin(id):
         user.location = form.location.data
         user.about_me = form.about_me.data
         db.session.add(user)
-        flash('The profile has been updated.')
+        flash('您的个人信息已经成功更新')
         return redirect(url_for('main.user', username=user.username))
     form.email.data = user.email
     form.username.data = user.username
