@@ -40,7 +40,7 @@ def upload():
         file.save(os.path.join(current_app.config['ARTICLES_SOURCE_DIR'],
                                filename))
         # 生成html与数据库记录
-        Article.render(name=filename.rsplit('.')[0])
+        Article.md_render(name=filename.rsplit('.')[0])
 
         flash("上传 %s 成功" % filename)
     else:
@@ -51,7 +51,7 @@ def upload():
 @login_required
 @admin_required
 def render(article_name):
-    flash(Article.render(article_name))
+    flash(Article.md_render(article_name))
     return redirect(url_for('admin.index'))
 
 @admin.route('/admin/refresh/<article_name>')
@@ -59,39 +59,37 @@ def render(article_name):
 @admin_required
 def refresh(article_name):
     article = Article.query.filter_by(name=article_name).first()
-    return article.refresh()
+    return article.md_refresh()
 
 @admin.route('/admin/delete/md/<article_name>')
 @login_required
 @admin_required
 def delete_md(article_name):
-    article = Article.query.filter_by(name=article_name).first()
-    flash(article.delete_md())
+    flash(Article.md_delete(article_name))
     return redirect(url_for('admin.index'))
 
 @admin.route('/admin/delete/html/<article_name>')
 @login_required
 @admin_required
 def delete_html(article_name):
-    print(article_name)
     article = Article.query.filter_by(name=article_name).first()
-    flash(article.delete_html())
+    flash(article.delete())
+    return redirect(url_for('admin.index'))
+
+@admin.route('/admin/render_all')
+@login_required
+@admin_required
+def render_all():
+    Article.md_render_all()
+    flash("Render all articles succeeded")
     return redirect(url_for('admin.index'))
 
 @admin.route('/admin/refresh_all')
 @login_required
 @admin_required
 def refresh_all():
-    Article.refresh_all()
+    Article.md_refresh_all()
     return "Refresh all articles succeeded"
-
-@admin.route('/admin/render_all')
-@login_required
-@admin_required
-def render_all():
-    Article.render_all()
-    flash("Render all articles succeeded")
-    return redirect(url_for('admin.index'))
 
 @admin.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
 @login_required

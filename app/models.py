@@ -2,6 +2,7 @@ import os
 import os.path
 import hashlib
 import bleach
+import markdown
 from datetime import datetime
 
 from sqlalchemy import desc
@@ -278,6 +279,8 @@ class Article(db.Model):
     title = db.Column(db.String(64), unique=True)
     datestr = db.Column(db.String(64))
     date = db.Column(db.Date)
+    timestamp = db.Column(db.DateTime, index=True,
+                          default=datetime.utcnow)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     md5 = db.Column(db.String(32))
@@ -293,33 +296,7 @@ class Article(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-    __mapper_args__ = {"order_by": desc(date)}
-
-    @property
-    def md_name(self):
-        return self.name+'.md'
-
-    @property
-    def sc_path(self):
-        return os.path.join(Config.ARTICLES_SOURCE_DIR, self.md_name)
-
-    def get_md5(self):
-        md5 = hashlib.md5()
-        with open(self.sc_path, "rb") as scf:
-            while True:
-                content = scf.read(1024)
-                if not content:
-                    break
-                md5.update(content)
-        return md5.hexdigest()
-
-    def is_change(self):
-        old_md5 = self.md5
-        now_md5 = self.get_md5()
-        if old_md5 != now_md5:
-            return True
-        else:
-            return False
+    __mapper_args__ = {"order_by": desc(timestamp)}
 
     def add_tags(self, tag_names):
         """增加文章的tags
@@ -364,11 +341,50 @@ class Article(db.Model):
         db.session.add(new_category)
         self.category = new_category
 
+    def delete(self):
+        """删除存在的文章记录"""
+        self.delete_tags()
+        self.category.size -= 1
+        if self.category.size == 0:
+            db.session.delete(self.category)
+        db.session.delete(self)
+        return "[article] %s is deleted" % self.title
+
+    def get_md5(self):
+        md5 = hashlib.md5()
+        with open(self.sc_path, "rb") as scf:
+            while True:
+                content = scf.read(1024)
+                if not content:
+                    break
+                md5.update(content)
+        return md5.hexdigest()
+
     @staticmethod
     def on_change_body(target, value, oldvalue, initiator):
         target.body_html = MD.convert(value)
 
-    def relog(self):
+    def __repr__(self):
+        return '<Article %r>' % self.name
+
+    # the following function are ready for the markdwon file
+    @property
+    def md_name(self):
+        return self.name+'.md'
+
+    @property
+    def sc_path(self):
+        return os.path.join(Config.ARTICLES_SOURCE_DIR, self.md_name)
+
+    def md_is_change(self):
+        old_md5 = self.md5
+        now_md5 = self.get_md5()
+        if old_md5 != now_md5:
+            return True
+        else:
+            return False
+
+    def md_relog(self):
         """`/articles`目录中的文章，文章记录已存在，更新文章记录中各属性"""
         with open(self.sc_path, "r", encoding="utf-8") as scfd:
             self.body = scfd.read()
@@ -378,7 +394,8 @@ class Article(db.Model):
         self.datestr = MD.Meta.get('date', [''])[0]
         self.date    = convert_date(self.datestr)
         self.md5     = self.get_md5()
-        self.author  = User.query.filter_by(username='admin').first()
+        admin_role = Role.query.filter_by(permissions=0xff).first()
+        self.author  = User.query.filter_by(role=admin_role).first()
 
         category_name = MD.Meta.get('category', [''])[0]
         self.change_category(category_name)
@@ -388,38 +405,30 @@ class Article(db.Model):
         self.add_tags(tag_names)
 
     @classmethod
-    def render(cls, name):
+    def md_render(cls, name):
         """根据md文件生成文章记录，更新记录中各属性
         name: 文件名(去除后缀)
         """
         article = Article(name=name)
-        article.relog()
+        article.md_relog()
         db.session.add(article)
         return "[article] %s is added" % name
 
-    def refresh(self):
-        """更新存在的article记录"""
-        self.relog()
-        return "[article] %s is refreshed" % self.title
-
-    def delete_html(self):
-        """删除存在的文章记录"""
-        self.delete_tags()
-        self.category.size -= 1
-        if self.category.size == 0:
-            db.session.delete(self.category)
-        db.session.delete(self)
-        return "[article] %s is deleted" % self.title
-
-    def delete_md(self):
+    @staticmethod
+    def md_delete(name):
         """删除存在文章记录的md文件"""
-        sc_path = self.sc_path
+        sc_path = os.path.join(Config.ARTICLES_SOURCE_DIR, name+'.md')
         if os.path.isfile(sc_path):
             os.remove(sc_path)
-            return "[md] %s.md is deleted" % self.name
+            return "[md] %s is deleted." % name
+
+    def md_refresh(self):
+        """更新存在的article记录"""
+        self.md_relog()
+        return "[article] %s is refreshed" % self.title
 
     @classmethod
-    def render_all(cls):
+    def md_render_all(cls):
         """根据md文件生成html文件"""
         # 获取存在的md文件的name集合
         existed_md_articles = set()
@@ -431,17 +440,14 @@ class Article(db.Model):
 
         # 增加(存在md文件却没有记录)的文件记录，并生成html文件
         for name in existed_md_articles - loged_articles:
-            cls.render(name)
+            cls.md_render(name)
 
     @classmethod
-    def refresh_all(cls):
+    def md_refresh_all(cls):
         """查看是否有文件改变，改变则更新html文件和数据库记录"""
         for article in cls.query.all():
-            if article.is_change():
-                article.refresh()
-
-    def __repr__(self):
-        return '<Article %r>' % self.name
+            if article.md_is_change():
+                article.md_refresh()
 
 db.event.listen(Article.body, 'set', Article.on_change_body)
 

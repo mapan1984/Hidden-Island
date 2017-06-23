@@ -5,8 +5,8 @@
 
 {% block head %}
 {{ super() }}
-<link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
 <link href="{{ url_for('static', filename='styles/article.css')}}" rel="stylesheet">
+<link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML">
 </script>
@@ -34,20 +34,19 @@
           </a>
         </div>
       </div><!-- /.blog-post-info -->
-      {# 渲染文章内容，不转义 #}
       {{ article.body_html|safe }}
     </div><!-- /.blog-post -->
     <div class="comment">
       <div class="comment-form">
       {% if current_user.is_authenticated %}
-        <h3 id="comments">输入评论</h3>
+        <p>请输入评论</p>
         {{ wtf.quick_form(form) }}
       {% else %}
-        <a href="{{ url_for('auth.login', next=article_name) }}">log in before commit comment</a>
+        <a href="{{ url_for('auth.login', next=article_name) }}">评论前请先登录</a>
       {% endif %}
       </div>
       <ul class="comments">
-      {% for comment in comments %}
+      {% for comment in article.comments %}
       <li class="comment">
         <div class="comment-date">{{ comment.timestamp }}</div>
         <div class="comment-author">{{ comment.author.username }}</div>
@@ -62,8 +61,15 @@
       {% endfor %}
       </ul>
     </div>
+  </div>
   <div class="col-sm-3 col-sm-offset-1">
+    <div id="toc">
+    </div>
   </div>
 </div>
 {% endblock %}
 
+{% block js %}
+{{ super() }}
+<script src="{{ url_for('static', filename='scripts/article.js') }}"></script>
+{% endblock %}

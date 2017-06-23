@@ -6,7 +6,6 @@ body {
   background-color: rgba(247, 247, 247, 0.4);
   font-family: Georgia, "Times New Roman", Times, serif;
 }
-
 h1, .h1,
 h2, .h2,
 h3, .h3,
@@ -18,7 +17,6 @@ h6, .h6 {
   font-family: "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: normal;
 }
-
 a:link, a:visited {
   text-decoration: none;
 }
@@ -27,7 +25,6 @@ a:link, a:visited {
 /*
  * Override Bootstrap's default container.
  */
-
 @media (min-width: 1200px) {
   .container {
     width: 970px;
@@ -35,10 +32,10 @@ a:link, a:visited {
 }
 
 
+
 /*
  * Blog name and description
  */
-
 header {
   padding-top: 20px;
   padding-bottom: 20px;
@@ -58,7 +55,6 @@ header {
 /*
  * Main column and sidebar layout
  */
-
 .blog-main {
   font-size: 18px;
   line-height: 1.5;
@@ -96,13 +92,17 @@ header {
 /*
  * articles-list
  */
+.column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
 ul.articles {
     list-style-type: none;
     padding: 1px;
     margin: 0px 5px 0px 5px;
     border-top: 1px solid #e0e0e0;
 }
-
 ul > li.article {
   display: flex;
   dispaly: -webkit-flex;
@@ -110,7 +110,6 @@ ul > li.article {
   padding: 8px;
   border-bottom: 1px solid #e0e0e0;
 }
-
 ul.articles li.article:hover {
   background-color: #f0f0f0;
 }
@@ -128,7 +127,6 @@ div.edit {
 /*
  * Footer
  */
-
 footer {
   padding: 20px 0;
   color: #999;

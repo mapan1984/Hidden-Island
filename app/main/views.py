@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.main import main
-from app.decorators import author_required
+from app.decorators import permission_required, author_required
 from app.sim import similarity
 from app.main.forms import CommentForm, EditProfileForm, EditArticleForm
 from app.models import Category, Tag, Article, Comment, Permission, User
@@ -48,9 +48,8 @@ def article(article_name):
         db.session.add(comment)
         flash('您的评论已经发布')
         return redirect(url_for('main.article', article_name=article.name))
-    return render_template('article.html',
-                           form=form,
-                           article=article)
+    return render_template('article.html', form=form, article=article)
+
 
 @main.route('/categories')
 def categories():
@@ -132,7 +131,7 @@ def delete_article(article_name):
             and not current_user.can(Permission.ADMINISTER):
         abort(403)
     else:
-        flash(article.delete_html())
+        flash(article.delete())
         return redirect(request.args.get('next')
                     or url_for('main.user', username=current_user.username))
 
@@ -180,5 +179,6 @@ def search():
         sim = similarity(article_content, keys)
         articles.append((sim, article))
     articles.sort(key=lambda x:x[0], reverse=True)
-    return render_template('search.html', articles=articles[:20])
+    return render_template('search.html', articles=articles[:20],
+                           archives=Article.query.limit(10).all())
 

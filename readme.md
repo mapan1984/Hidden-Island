@@ -9,9 +9,19 @@
 5. `MAIL_PASSWORD`: 网站email密码，用于登陆为`MAIL_USERNAME`提供服务的email服务器
 6. `SECRET_KEY`: 用户注册及提交表单时使用的加密key
 
-### 文章目录
+### 文章
 
-项目根目录下`./articles`为文章目录，保存Markdown格式的文章
+有两种发布文章的方式：
+
+### 1. 利用网站给出的Markdown编辑器在线发布
+
+有发布文章权限的用户可在网站的写作页面发布文章。与上一种方式不同，以此发布的文章为`name`赋值为`title`。
+
+### 2. 上传文章的Markdown格式的文章到文章目录(只有管理员可用)
+
+项目根目录下`./articles`为文章目录，保存Markdown格式的文章。
+
+在`./articles`下的文章，其`name`为去后缀的文件名(为了找到源文件进行操作)，`title`在文章中以[特定格式](https://hidden-island.herokuapp.com/write-article)给定。
 
 ### 特性
 
