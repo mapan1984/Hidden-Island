@@ -50,6 +50,13 @@
       <li class="comment">
         <div class="comment-date">{{ comment.timestamp }}</div>
         <div class="comment-author">{{ comment.author.username }}</div>
+        {% if current_user.is_authenticated and (current_user.is_administrator or comment.author == current_user or comment.article.author == current_user) %}
+        <div class="moderate">
+          <a href="{{ url_for('main.moderate', comment_id=comment.id) }}">
+            <span class="label label-danger">Delete</span>
+          </a>
+        </div>
+        {% endif %}
         <div class="comment-body">
             {% if comment.body_html %}
                 {{ comment.body_html | safe }}

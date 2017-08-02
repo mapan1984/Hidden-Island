@@ -51,6 +51,19 @@ def article(article_name):
     return render_template('article.html', form=form, article=article)
 
 
+@main.route('/moderate/<comment_id>')
+@login_required
+@permission_required(Permission.MODERATE_COMMENTS)
+def moderate(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if comment.article.author == current_user\
+            or comment.author == current_user\
+            or current_user.is_administrator:
+        db.session.delete(comment)
+        flash('评论已经删除')
+    return redirect(url_for('main.article', article_name=comment.article.name))
+
+
 @main.route('/categories')
 def categories():
     return render_template('category.html',
