@@ -1,25 +1,6 @@
-# Flask
-Flask==0.11.1
-Flask-Bootstrap==3.3.7.0
-Flask-Moment==0.5.1
-Flask-Login==0.4.0
-Flask-Mail==0.9.1
-Flask-Migrate==2.0.0
-Flask-PageDown==0.2.2
-Flask-Script==2.0.5
-Flask-SQLAlchemy==2.1
-Flask-WTF==0.13.1
-Flask-PageDown==0.2.2
-
-# search
-jieba==0.38
-
-# Markdown
-Markdown==2.6.6
-Pygments==2.2.0
-bleach==2.0.0
-
+-r requirements/prod.txt
 # Production Server
 gevent
 gunicorn
 psycopg2
+psycopg2-binary

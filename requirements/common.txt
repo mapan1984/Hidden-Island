@@ -1,0 +1,20 @@
+# Flask
+Flask==0.11.1
+Flask-Bootstrap==3.3.7.1
+Flask-Moment==0.6.0
+Flask-Login==0.4.1
+Flask-Mail==0.9.1
+Flask-Migrate==2.1.1
+Flask-PageDown==0.2.2
+Flask-Script==2.0.6
+Flask-SQLAlchemy==2.3.2
+Flask-WTF==0.14.2
+Flask-PageDown==0.2.2
+
+# Search
+jieba==0.39
+
+# Markdown
+Markdown==2.6.11
+Pygments==2.2.0
+bleach==2.1.3

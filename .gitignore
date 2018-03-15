@@ -2,15 +2,6 @@
 *.py[cod]
 __pycache__
 
-# Virtual environment
-myvenv
-
-# vscode
-.vscode
-
-# PyCharm
-.idea
-
 # heroku
 .env
 
