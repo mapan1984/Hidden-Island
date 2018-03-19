@@ -9,7 +9,8 @@ from app.main import main
 from app.decorators import permission_required, author_required
 from app.sim import similarity
 from app.main.forms import CommentForm, EditProfileForm, EditArticleForm
-from app.models import Category, Tag, Article, Comment, Permission, User
+from app.models import Category, Tag, Article, Comment, Rating, \
+                       User, Permission, AnonymousUser
 
 
 @main.app_context_processor
@@ -48,7 +49,41 @@ def article(article_name):
         db.session.add(comment)
         flash('您的评论已经发布')
         return redirect(url_for('main.article', article_name=article.name))
-    return render_template('article.html', form=form, article=article)
+
+    ratings = article.ratings.all()
+    num_rating = len(ratings)
+    if num_rating == 0:
+        avg_rating = None
+    else:
+        avg_rating = sum(map(lambda rating: rating.value, ratings))/num_rating
+
+    try:
+        current_user_rating = article.ratings.filter_by(user=current_user).first().value
+    except AttributeError as e:
+        current_user_rating = None
+
+    try:
+        current_user_id = current_user.id
+    except AttributeError as e:
+        current_user_id = None
+    return render_template('article.html', form=form, article=article,
+                           num_rating=num_rating, avg_rating=avg_rating,
+                           current_user_rating=current_user_rating,
+                           article_id=article.id, user_id=current_user_id)
+
+@main.route('/rating', methods=['POST'])
+@login_required
+def rating():
+    user_id = request.json['user_id']
+    rating_value = request.json['rating_value']
+    article_id = request.json['article_id']
+    rating = Rating.query.filter_by(user_id=user_id, article_id=article_id).first()
+    if rating is None:
+        rating = Rating(value=rating_value, user_id=user_id, article_id=article_id)
+    else:
+        rating.value = rating_value
+    db.session.add(rating)
+    return "Rating done."
 
 
 @main.route('/moderate/<comment_id>')

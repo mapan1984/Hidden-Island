@@ -7,6 +7,7 @@
 {{ super() }}
 <link href="{{ url_for('static', filename='styles/article.css')}}" rel="stylesheet">
 <link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
+<link href="{{ url_for('static', filename='styles/rating.css')}}" rel="stylesheet">
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML">
 </script>
@@ -34,8 +35,22 @@
           </a>
         </div>
       </div><!-- /.blog-post-info -->
-      {{ article.body_html|safe }}
+      <div class="blog-post-content">
+        {{ article.body_html|safe }}
+      </div>
     </div><!-- /.blog-post -->
+    <div class="blog-rating" data-user-id={{user_id}} data-article-id={{article_id}} data-avg-rating={{avg_rating}} data-current-rating={{current_user_rating}}>
+      <div class="avg">
+      <p><span id="avg-rating"></span>({{ num_rating }}人已评分，平均{{ avg_rating }}分)</p>
+      </div>
+      <div style="display: inline-block;">
+      {% if current_user.is_authenticated %}
+        {% include '_includes/rating.html' %}<p>(你的评分为：<span id="current-rating">{{ current_user_rating }}</span>)</p>
+      {% else %}
+        <a href="{{ url_for('auth.login', next=article_name) }}">评分前请先登录</a>
+      {% endif %}
+      </div>
+    </div>
     <div class="comment">
       <div class="comment-form">
       {% if current_user.is_authenticated %}
@@ -70,7 +85,12 @@
     </div>
   </div>
   <div class="col-sm-3 col-sm-offset-1">
-    <div id="toc">
+    <div class="blog-post-tip">
+      <div id="toc">
+      </div>
+      <button type="button" class="btn btn-info btn-sm" id="back-to-top">
+        <span clas="glyphicon glyphicon-hand-up" aria-hidden="true"></span> 回到顶部
+      </button>
     </div>
   </div>
 </div>
@@ -79,4 +99,5 @@
 {% block js %}
 {{ super() }}
 <script src="{{ url_for('static', filename='scripts/article.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/rating.js') }}"></script>
 {% endblock %}

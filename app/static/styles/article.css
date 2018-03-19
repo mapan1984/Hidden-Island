@@ -21,7 +21,23 @@
 .blog-post-date {
   color: #999;
 }
-
+.blog-post-content {
+  margin-top: 55px; /*为了抵消文章标题带来的偏移（margin/padding）*/
+  line-height: 1.75;
+  font-size: 16px;
+}
+.blog-post-content:hover {
+  background-color: #f0f0f0;
+}
+.clickable-header {  /* 所有的标题 */
+    padding-top: 55px;
+    margin-top: -55px;
+    color:#3776ab;
+}
+table {
+    font-size: 12px;
+    line-height: 1.2;
+}
 /*
  * Comments
  */
@@ -57,4 +73,37 @@ div.comment-form {
 div.moderate {
   float: right;
 }
+/*
+ * Rating
+ */
+div.blog-rating {
+  margin: 20px auto;
+  padding: 5px;
+  border-top: 1px solid #e0e0e0;
+}
+div.blog-rating .avg {
+  float: right;
+}
+/*
+ * Tip
+ */
+div.blog-post-tip #toc {
+  position: fixed;
+  padding: 2px;
+  top: 300px;
+}
+div.blog-post-tip #toc span{
+  position: relative;
+  bottom: 10px;
+}
+div.blog-post-tip #back-to-top {
+  position: fixed;
+  bottom:30px;
+}
 
+/* 屏幕过窄是隐藏post-tip */
+@media (max-width: 768px){
+    div.blog-post-tip {
+        display: none;
+    }
+}

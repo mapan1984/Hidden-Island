@@ -79,6 +79,7 @@ class User(UserMixin, db.Model):
     # relationship
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
     articles = db.relationship('Article', backref='author', lazy='dynamic')
+    ratings = db.relationship('Rating', backref='user', lazy='dynamic')
 
     # ForeignKey
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
@@ -291,6 +292,7 @@ class Article(db.Model):
                            backref=db.backref('articles', lazy='dynamic'),
                            lazy='dynamic')
     comments = db.relationship('Comment', backref='article', lazy='dynamic')
+    ratings = db.relationship('Rating', backref='article', lazy='dynamic')
 
     # ForeignKey
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
@@ -477,7 +479,22 @@ class Comment(db.Model):
                 tags=allowed_tags, strip=True))
 
     def __repr__(self):
-        return '<Comment of %r and %r>'\
+        return '<Comment of %r for %r>'\
                 % (self.author.username, self.article.title)
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+
+
+class Rating(db.Model):
+    __tablename__ = 'ratings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.SmallInteger)
+
+    # ForeignKey
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
+
+    def __repr__(self):
+        return '<Rating of %r for %r>'\
+                % (self.user.username, self.article.title)
