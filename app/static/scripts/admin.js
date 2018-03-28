@@ -1,6 +1,6 @@
 'use strict';
 
-$(function(){
+$(function() {
     // 在targetElement后插入newElement
     function insertAfter(newElement, targetElement) {
         let parent = targetElement.parentNode;
@@ -29,7 +29,7 @@ $(function(){
               <span aria-hidden="true">&times;</span>
             </button>
             ${text}
-            `
+            `;
 
         let alertPlace = document.getElementsByClassName(`${place}`)[0];
         if (alertPlace) {

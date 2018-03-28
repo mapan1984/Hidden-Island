@@ -8,7 +8,7 @@ from datetime import datetime
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app, render_template
+from flask import current_app, render_template, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 
 from app import db, login_manager
@@ -66,8 +66,8 @@ class User(UserMixin, db.Model):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64))
-    username = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64))    # 真实姓名
+    username = db.Column(db.String(64), unique=True)  # 用户名
     location = db.Column(db.String(64))
     about_me = db.Column(db.Text())
     email = db.Column(db.String(64), unique=True, index=True)
@@ -140,7 +140,7 @@ class User(UserMixin, db.Model):
 
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
-        return s.dumps({'confirm': self.id})
+        return s.dumps({'confirm': self.id}).decode('utf-8')
 
     def confirm(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
@@ -190,6 +190,32 @@ class User(UserMixin, db.Model):
         self.email = new_email
         db.session.add(self)
         return True
+
+    def generate_auth_token(self, expiration):
+        """为api生成用户认证token"""
+        s = Serializer(
+            current_app.config['SECRET_KEY'],
+            expires_in=expiration
+        )
+        return s.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        """
+        为api验证用户token
+
+        Args:
+            token: 客户端请求的token字段
+
+        Returns:
+            token错误则返回None，否则返回对应用户(可能为None)
+        """
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
 
     def __repr__(self):
         return '<User %r - %s>' % (self.username, self.role.name)
@@ -276,8 +302,8 @@ class Article(db.Model):
     __tablename__ = 'articles'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, index=True)
-    title = db.Column(db.String(64), unique=True)
+    name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
+    title = db.Column(db.String(64), unique=True)  # 标题
     datestr = db.Column(db.String(64))
     date = db.Column(db.Date)
     timestamp = db.Column(db.DateTime, index=True,
@@ -321,7 +347,7 @@ class Article(db.Model):
                 db.session.delete(tag)
 
     def change_category(self, category):
-        """该变文章的category(如果之前不存在category则增加)"""
+        """改变文章的category(如果之前不存在category则增加)"""
         old_category = self.category
         if isinstance(category, str):
             new_category = Category.query.filter_by(name=category).first()
@@ -365,6 +391,24 @@ class Article(db.Model):
     @staticmethod
     def on_change_body(target, value, oldvalue, initiator):
         target.body_html = MD.convert(value)
+
+    def to_json(self):
+        json_article = {
+            'url': url_for('api.get_article', id=self.id, _external=True),
+            'body': self.body,
+            'body_html': self.body_html,
+            'timestamp': self.timestamp,
+            #'author_url': url_for('api.get_user', id=self.author_id),
+        }
+        return json_article
+
+    @staticmethod
+    def from_json(json_article):
+        """根据客户端提交的json创建博客文章"""
+        body = json_article.get('body')
+        if body is None or body == '':
+            raise ValidationError('article does not have a body')
+        return Article(body=body)
 
     def __repr__(self):
         return '<Article %r>' % self.name
@@ -450,6 +494,7 @@ class Article(db.Model):
         for article in cls.query.all():
             if article.md_is_change():
                 article.md_refresh()
+
 
 db.event.listen(Article.body, 'set', Article.on_change_body)
 

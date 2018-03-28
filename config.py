@@ -16,7 +16,7 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = '[HIDDEN-ISLAND]'
     MAIL_SENDER = 'Hidden-Island <mapansky1984@163.com>'
-    ADMIN_EMAIL =  os.environ.get('ADMIN_EMAIL')
+    ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
 # end_mail_config }}
 
     # 文章目录

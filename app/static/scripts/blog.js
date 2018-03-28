@@ -4,7 +4,7 @@ $(function() {
     // 为导航条的当前项目增加 `active` class
     let curHref = document.location.href;
     $('ul.main-nav').find('a').each(function () {
-        let curHrefReg = new RegExp('^'+this.href+'(|\\?page=\\d)$')
+        let curHrefReg = new RegExp('^'+this.href+'(|\\?page=\\d)$');
         if (curHrefReg.test(curHref)) {
             $(this.parentNode).addClass('active');  // parentNode.className += 'active';
         }
