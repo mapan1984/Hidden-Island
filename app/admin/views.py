@@ -2,17 +2,17 @@ import os
 
 from flask import request, redirect, url_for, render_template, \
                   flash, current_app
-from flask_login import login_required, current_user
+from flask_login import login_required
 
 from app import db
-from app.admin import admin
-from app.admin.forms import EditProfileAdminForm
+from config import Config
 from app.models import Article, User, Role
 from app.decorators import admin_required
-from config import Config
+from app.admin import admin
+from app.admin.forms import EditProfileAdminForm
 
 
-@admin.route('/admin')
+@admin.route('/')
 @login_required
 @admin_required
 def index():
@@ -25,11 +25,11 @@ def index():
     # 获取未被记录的md文件name的集合
     not_loged_articles = existed_md_articles\
                          - {article.name for article in loged_articles}
-    return render_template('admin.html',
+    return render_template('admin/admin.html',
                            loged_articles=loged_articles,
                            not_loged_articles=not_loged_articles)
 
-@admin.route('/admin/upload', methods=['POST'])
+@admin.route('/upload', methods=['POST'])
 @login_required
 @admin_required
 def upload():
@@ -47,28 +47,28 @@ def upload():
         flash("上传 %s 失败" % filename)
     return redirect(url_for('admin.index'))
 
-@admin.route('/admin/render/<article_name>')
+@admin.route('/render/<article_name>')
 @login_required
 @admin_required
 def render(article_name):
     flash(Article.md_render(article_name))
     return redirect(url_for('admin.index'))
 
-@admin.route('/admin/refresh/<article_name>')
+@admin.route('/refresh/<article_name>')
 @login_required
 @admin_required
 def refresh(article_name):
     article = Article.query.filter_by(name=article_name).first()
     return article.md_refresh()
 
-@admin.route('/admin/delete/md/<article_name>')
+@admin.route('/delete/md/<article_name>')
 @login_required
 @admin_required
 def delete_md(article_name):
     flash(Article.md_delete(article_name))
     return redirect(url_for('admin.index'))
 
-@admin.route('/admin/delete/html/<article_name>')
+@admin.route('/delete/html/<article_name>')
 @login_required
 @admin_required
 def delete_html(article_name):
@@ -76,7 +76,7 @@ def delete_html(article_name):
     flash(article.delete())
     return redirect(url_for('admin.index'))
 
-@admin.route('/admin/render_all')
+@admin.route('/render_all')
 @login_required
 @admin_required
 def render_all():
@@ -84,17 +84,17 @@ def render_all():
     flash("Render all articles succeeded")
     return redirect(url_for('admin.index'))
 
-@admin.route('/admin/refresh_all')
+@admin.route('/refresh_all')
 @login_required
 @admin_required
 def refresh_all():
     Article.md_refresh_all()
     return "Refresh all articles succeeded"
 
-@admin.route('/edit-profile/<int:id>', methods=['GET', 'POST'])
+@admin.route('/edit_profile/<int:id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def edit_profile_admin(id):
+def edit_profile(id):
     user = User.query.get_or_404(id)
     form = EditProfileAdminForm(user=user)
     if form.validate_on_submit():
@@ -106,8 +106,8 @@ def edit_profile_admin(id):
         user.location = form.location.data
         user.about_me = form.about_me.data
         db.session.add(user)
-        flash('您的个人信息已经成功更新')
-        return redirect(url_for('main.user', username=user.username))
+        flash('个人信息已经成功更新')
+        return redirect(url_for('user.user', username=user.username))
     form.email.data = user.email
     form.username.data = user.username
     form.confirmed.data = user.confirmed
@@ -115,4 +115,4 @@ def edit_profile_admin(id):
     form.name.data = user.name
     form.location.data = user.location
     form.about_me.data = user.about_me
-    return render_template('edit_profile.html', form=form, user=user)
+    return render_template('user/edit.html', form=form, user=user)

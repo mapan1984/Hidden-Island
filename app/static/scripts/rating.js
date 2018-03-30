@@ -33,7 +33,7 @@ $(function () {
     // 设置当前用户的rating值(文字)
     let spanCurrentRating = document.querySelector('#current-rating')
     function setCurrentRaing(value) {
-        spanCurrentRating.innerText = ratingValue
+        spanCurrentRating.innerText = value
     }
 
     // 发送评分请求

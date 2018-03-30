@@ -13,7 +13,7 @@
       </div>
     </div>
     <div class=".column">
-      <div class="post-author"><a href="{{ url_for('.user', username=article.author.username) }}">{{ article.author.username }}</a></div>
+      <div class="post-author"><a href="{{ url_for('user.user', username=article.author.username) }}">{{ article.author.username }}</a></div>
       <div class="edit">
       {% if current_user.is_authenticated %}
         {% if current_user == article.author %}

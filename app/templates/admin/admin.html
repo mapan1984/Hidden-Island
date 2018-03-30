@@ -23,10 +23,10 @@
           </th>
           {% if article.md5 %}
           <td>
-            <button type="button" class="btn btn-success btn-sm" id="/admin/refresh/{{article.name}}">refresh</button>
+            <button type="button" class="btn btn-success btn-sm" id="{{ url_for('admin.refresh', article_name=article.name) }}">refresh</button>
           </td>
           <td>
-            <a class="btn btn-danger btn-sm" href="/admin/delete/md/{{article.name}}" role="button">delete md</a>
+            <a class="btn btn-danger btn-sm" href="{{ url_for('admin.delete_md', article_name=article.name) }}" role="button">delete md</a>
           </td>
           {% else %}
           <td>
@@ -35,7 +35,7 @@
           </td>
           {% endif %}
          <td>
-            <a class="btn btn-warning btn-sm" href="/admin/delete/html/{{article.name}}" role="button">delete html</a>
+            <a class="btn btn-warning btn-sm" href="{{ url_for('admin.delete_html', article_name=article.name) }}" role="button">delete html</a>
           </td>
         </tr>
         {% endfor %}
@@ -57,10 +57,10 @@
             <a href="{{ url_for('article.article', article_name=md_article) }}">{{md_article}}</a>
           </th>
           <td>
-            <a class="btn btn-primary btn-sm" href="/admin/render/{{md_article}}" role="button">render</a>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('admin.render', article_name=md_article) }}" role="button">render</a>
           </td>
           <td>
-            <a class="btn btn-danger btn-sm" href="/admin/delete/md/{{md_article}}" role="button">delete md</a>
+            <a class="btn btn-danger btn-sm" href="{{ url_for('admin.delete_md', article_name=md_article) }}" role="button">delete md</a>
           </td>
         </tr>
         {% endfor %}
@@ -68,7 +68,7 @@
     </table>
   </div>
   <div class="col-sm-3 col-sm-offset-1">
-    <form action="/admin/upload" method="POST" enctype="multipart/form-data">
+    <form action="{{ url_for('admin.upload') }}" method="POST" enctype="multipart/form-data">
       <div class="form-group">
         <label>File input</label>
         <input type="file" name="file">

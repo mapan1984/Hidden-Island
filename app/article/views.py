@@ -71,7 +71,7 @@ def delete(article_name):
     else:
         flash(article.delete())
         return redirect(request.args.get('next')
-                    or url_for('main.user', username=current_user.username))
+                    or url_for('user.user', username=current_user.username))
 
 
 @article_blueprint.route('/modify/<article_name>', methods=['GET', 'POST'])

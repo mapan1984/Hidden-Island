@@ -1,12 +1,8 @@
-from flask import render_template, request, flash, redirect, url_for, \
-                  current_app, abort
-from flask_login import current_user, login_required
+from flask import render_template, request, current_app
 
-from app import db
 from app.main import main
 from app.sim import similarity
-from app.main.forms import EditProfileForm
-from app.models import Category, Tag, Article, User, Permission
+from app.models import Category, Tag, Article, Permission
 
 
 @main.app_context_processor
@@ -51,39 +47,6 @@ def archives():
                            articles=Article.query.all())
 
 
-@main.route('/user/<username>')
-def user(username):
-    user = User.query.filter_by(username=username).first()
-    if user is None:
-        abort(404)
-
-    page = request.args.get('page', 1, type=int)
-    pagination = user.articles.paginate(
-            page, per_page=current_app.config['ARTICLES_PAGINATE'],
-            error_out=False)
-    articles = []
-    for article in pagination.items:
-        articles.append(article)
-    return render_template('user.html', user=user,
-                           pagination=pagination, articles=articles)
-
-
-@main.route('/edit-profile', methods=['GET', 'POST'])
-@login_required
-def edit_profile():
-    form = EditProfileForm()
-    if form.validate_on_submit():
-        current_user.name = form.name.data
-        current_user.location = form.location.data
-        current_user.about_me = form.about_me.data
-        db.session.add(current_user)
-        flash('你的个人信息已被更新')
-        return redirect(url_for('.user', username=current_user.username))
-    form.name.data = current_user.name
-    form.location.data = current_user.location
-    form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html', form=form)
-
 
 @main.route('/search', methods=['POST'])
 def search():
@@ -99,4 +62,3 @@ def search():
     articles.sort(key=lambda x: x[0], reverse=True)
     return render_template('search.html', articles=articles[:20],
                            archives=Article.query.limit(10).all())
-

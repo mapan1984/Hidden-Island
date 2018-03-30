@@ -29,10 +29,10 @@
 
   <p>
     {% if user == current_user %}
-    <a class="btn btn-default" href="{{ url_for('main.edit_profile') }}">修改信息</a>
+    <a class="btn btn-default" href="{{ url_for('user.edit') }}">修改信息</a>
     {% endif %}
     {% if current_user.is_authenticated and current_user.is_administrator %}
-    <a class="btn btn-danger" href="{{ url_for('admin.edit_profile_admin', id=user.id) }}">修改信息 [Admin]</a>
+    <a class="btn btn-danger" href="{{ url_for('admin.edit_profile', id=user.id) }}">修改信息 [Admin]</a>
     {% endif %}
   </p>
 
@@ -42,7 +42,7 @@
 {% block content %}
   {{ render_articles_list(articles) }}
   <div>
-    {{ pagination_widget(pagination, 'main.user', username=user.username) }}
+    {{ pagination_widget(pagination, 'user.user', username=user.username) }}
   </div>
 {% endblock %}
 
