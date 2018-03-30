@@ -2,34 +2,41 @@ $(function () {
     let blogRating = document.querySelector('.blog-rating')
     let userId = blogRating.dataset.userId
     let articleId = blogRating.dataset.articleId
+
     let avgRating = blogRating.dataset.avgRating
     let currentRating = blogRating.dataset.currentRating
 
-    let spanCurrentRating = document.querySelector('#current-rating')
-    let spanAvgRating = document.querySelector('#avg-rating')
+    // 设置当前用户的rating(星条)
+    if (currentRating != 'None') {
+        let star = document.querySelector(`#star${currentRating}`)
+        star.checked = true
+    }
 
+    // 显示所有用户的平均rating
+    let spanAvgRating = document.querySelector('#avg-rating')
+    if (avgRating != 'None') {
+        avgRating = Math.floor(avgRating)
+        spanAvgRating.innerText = '★★★★★☆☆☆☆☆'.substring(5 - avgRating, 10 - avgRating)
+    }
+
+    // 处理评分点击事件
     let rating = document.querySelector('.rating')
     rating && rating.addEventListener('click', (event) => {
         let target = event.target
         if (target.nodeName == 'INPUT') {
             let ratingValue = target.value
             postRating(userId, articleId, ratingValue)
-            spanCurrentRating.innerText = ratingValue
+            setCurrentRaing(ratingValue)
         }
     })
 
-    // 设置当前用户的rating
-    if (currentRating != 'None') {
-        let star = document.querySelector(`#star${currentRating}`)
-        star.checked = true
+    // 设置当前用户的rating值(文字)
+    let spanCurrentRating = document.querySelector('#current-rating')
+    function setCurrentRaing(value) {
+        spanCurrentRating.innerText = ratingValue
     }
 
-    // 显示所有用户的评价rating
-    if (avgRating != 'None') {
-        avgRating = Math.floor(avgRating)
-        spanAvgRating.innerText = '★★★★★☆☆☆☆☆'.substring(5 - avgRating, 10 - avgRating)
-    }
-
+    // 发送评分请求
     function postRating(userId, articleId, ratingValue) {
         function success(text) {
             console.log(text)
@@ -51,7 +58,7 @@ $(function () {
             }
         }
 
-        request.open('POST', '/rating');
+        request.open('POST', '/article/rating');
         request.setRequestHeader("Content-Type", "application/json");
         request.send(
             JSON.stringify({

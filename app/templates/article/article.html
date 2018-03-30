@@ -20,7 +20,7 @@
       <div class="blog-post-info">
         <div class="column">
           <h2 class="blog-post-title">
-            <a href="/{{article.name}}">{{article.title}}</a>
+            <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
           </h2>
           <p class="blog-post-date">{% if article.datestr %}{{ article.datestr }}{% else %}{{ article.date }}{% endif %}</p>
         </div>
@@ -39,6 +39,7 @@
         {{ article.body_html|safe }}
       </div>
     </div><!-- /.blog-post -->
+
     <div class="blog-rating" data-user-id={{user_id}} data-article-id={{article_id}} data-avg-rating={{avg_rating}} data-current-rating={{current_user_rating}}>
       <div class="avg">
       <p><span id="avg-rating"></span>({{ num_rating }}人已评分，平均{{ avg_rating }}分)</p>
@@ -47,42 +48,55 @@
       {% if current_user.is_authenticated %}
         {% include '_includes/rating.html' %}<p>(你的评分为：<span id="current-rating">{{ current_user_rating }}</span>)</p>
       {% else %}
-        <a href="{{ url_for('auth.login', next=article_name) }}">评分前请先登录</a>
+        <a href="{{ url_for('auth.login', next='/article/'+article.name) }}">评分前请先登录</a>
       {% endif %}
       </div>
     </div>
+
     <div class="comment">
       <div class="comment-form">
       {% if current_user.is_authenticated %}
         <p>请输入评论</p>
-        {{ wtf.quick_form(form) }}
+        <form action="{{ url_for('article.comment', next='/article/'+article.name) }}" method="post" class="form" role="form">
+          <input name="user_id" type="hidden" value="{{user_id}}">
+          <input name="article_id" type="hidden" value="{{article_id}}">
+          <div class="form-group  required"><label class="control-label" for="body"></label>
+            <input class="form-control" id="body" name="comment_body" required="" type="text" value="">
+          </div>
+          <input class="btn btn-default" id="submit" name="submit" type="submit" value="提交评论">
+        </form>
       {% else %}
-        <a href="{{ url_for('auth.login', next=article_name) }}">评论前请先登录</a>
+        <a href="{{ url_for('auth.login', next='/article/'+article.name) }}">评论前请先登录</a>
       {% endif %}
       </div>
+
       <ul class="comments">
       {% for comment in article.comments %}
-      <li class="comment">
-        <div class="comment-date">{{ comment.timestamp }}</div>
-        <div class="comment-author">{{ comment.author.username }}</div>
-        {% if current_user.is_authenticated and (current_user.is_administrator or comment.author == current_user or comment.article.author == current_user) %}
-        <div class="moderate">
-          <a href="{{ url_for('main.moderate', comment_id=comment.id) }}">
-            <span class="label label-danger">Delete</span>
-          </a>
-        </div>
-        {% endif %}
-        <div class="comment-body">
-            {% if comment.body_html %}
-                {{ comment.body_html | safe }}
-            {% else %}
-                {{ comment.body }}
-            {% endif %}
-        </div>
-      </li>
+        <li class="comment">
+          <div class="comment-date">{{ comment.timestamp }}</div>
+          <div class="comment-author">{{ comment.author.username }}</div>
+          {% if current_user.is_authenticated
+                and (current_user.is_administrator
+                     or comment.author == current_user
+                     or comment.article.author == current_user) %}
+          <div class="moderate">
+            <a href="{{ url_for('article.moderate', comment_id=comment.id) }}">
+              <span class="label label-danger">Delete</span>
+            </a>
+          </div>
+          {% endif %}
+          <div class="comment-body">
+              {% if comment.body_html %}
+                  {{ comment.body_html | safe }}
+              {% else %}
+                  {{ comment.body }}
+              {% endif %}
+          </div>
+        </li>
       {% endfor %}
       </ul>
     </div>
+
   </div>
   <div class="col-sm-3 col-sm-offset-1">
     <div class="blog-post-tip">

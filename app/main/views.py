@@ -1,16 +1,12 @@
-import datetime
-
 from flask import render_template, request, flash, redirect, url_for, \
                   current_app, abort
 from flask_login import current_user, login_required
 
 from app import db
 from app.main import main
-from app.decorators import permission_required, author_required
 from app.sim import similarity
-from app.main.forms import CommentForm, EditProfileForm, EditArticleForm
-from app.models import Category, Tag, Article, Comment, Rating, \
-                       User, Permission, AnonymousUser
+from app.main.forms import EditProfileForm
+from app.models import Category, Tag, Article, User, Permission
 
 
 @main.app_context_processor
@@ -23,80 +19,18 @@ def inject_permissions():
 def index():
     page = request.args.get('page', 1, type=int)
     pagination = Article.query.paginate(
-            page, per_page=current_app.config['ARTICLES_PAGINATE'],
-            error_out=False)
-    articles = []
-    for article in pagination.items:
-        articles.append(article)
-    return render_template('index.html',
-                           pagination=pagination,
-                           articles=articles,
-                           archives=Article.query.limit(10).all())
+        page,
+        per_page=current_app.config['ARTICLES_PAGINATE'],
+        error_out=False
+    )
+    articles = [article for article in pagination.items]
+    return render_template(
+        'index.html',
+        pagination=pagination,
+        articles=articles,
+        archives=Article.query.limit(10).all()
+    )
 
-
-@main.route('/<article_name>', methods=['GET', 'POST'])
-def article(article_name):
-    """ 显示单篇文章
-    argv:
-        article_name: 文件名(xxx)
-    """
-    article = Article.query.filter_by(name=article_name).first_or_404()
-    form = CommentForm()
-    if form.validate_on_submit():
-        comment = Comment(body=form.body.data,
-                          article=article,
-                          author=current_user._get_current_object())
-        db.session.add(comment)
-        flash('您的评论已经发布')
-        return redirect(url_for('main.article', article_name=article.name))
-
-    ratings = article.ratings.all()
-    num_rating = len(ratings)
-    if num_rating == 0:
-        avg_rating = None
-    else:
-        avg_rating = sum(map(lambda rating: rating.value, ratings))/num_rating
-
-    try:
-        current_user_rating = article.ratings.filter_by(user=current_user).first().value
-    except AttributeError as e:
-        current_user_rating = None
-
-    try:
-        current_user_id = current_user.id
-    except AttributeError as e:
-        current_user_id = None
-    return render_template('article.html', form=form, article=article,
-                           num_rating=num_rating, avg_rating=avg_rating,
-                           current_user_rating=current_user_rating,
-                           article_id=article.id, user_id=current_user_id)
-
-@main.route('/rating', methods=['POST'])
-@login_required
-def rating():
-    user_id = request.json['user_id']
-    rating_value = request.json['rating_value']
-    article_id = request.json['article_id']
-    rating = Rating.query.filter_by(user_id=user_id, article_id=article_id).first()
-    if rating is None:
-        rating = Rating(value=rating_value, user_id=user_id, article_id=article_id)
-    else:
-        rating.value = rating_value
-    db.session.add(rating)
-    return "Rating done."
-
-
-@main.route('/moderate/<comment_id>')
-@login_required
-@permission_required(Permission.MODERATE_COMMENTS)
-def moderate(comment_id):
-    comment = Comment.query.get_or_404(comment_id)
-    if comment.article.author == current_user\
-            or comment.author == current_user\
-            or current_user.is_administrator:
-        db.session.delete(comment)
-        flash('评论已经删除')
-    return redirect(url_for('main.article', article_name=comment.article.name))
 
 
 @main.route('/categories')
@@ -151,70 +85,6 @@ def edit_profile():
     return render_template('edit_profile.html', form=form)
 
 
-@main.route('/edit-article', methods=['GET', 'POST'])
-@author_required
-def edit_article():
-    form = EditArticleForm()
-    if current_user.can(Permission.WRITE_ARTICLES) \
-            and form.validate_on_submit():
-        article = Article(title=form.title.data,
-                          name=form.title.data,
-                          body=form.body.data,
-                          date=datetime.date.today(),
-                          author=current_user._get_current_object())
-        category=Category.query.get(form.category.data)
-        article.change_category(category)
-        article.delete_tags()
-        article.add_tags(form.tags.data.strip().split(' '))
-        db.session.add(article)
-        return redirect(url_for('main.article', article_name=article.name))
-    return render_template('edit_article.html', form=form)
-
-
-@main.route('/delete-article/<article_name>')
-@author_required
-def delete_article(article_name):
-    article = Article.query.filter_by(name=article_name).first_or_404()
-    if current_user != article.author \
-            and not current_user.can(Permission.ADMINISTER):
-        abort(403)
-    else:
-        flash(article.delete())
-        return redirect(request.args.get('next')
-                    or url_for('main.user', username=current_user.username))
-
-
-@main.route('/modify-article/<article_name>', methods=['GET', 'POST'])
-@author_required
-def modify_article(article_name):
-    article = Article.query.filter_by(name=article_name).first_or_404()
-    form = EditArticleForm(article=article)
-    if current_user != article.author \
-            and not current_user.can(Permission.ADMINISTER):
-        abort(403)
-    if current_user.can(Permission.WRITE_ARTICLES) \
-            and form.validate_on_submit():
-        article.title = form.title.data
-        if article.name is None:
-            article.name = form.title.data
-        article.body = form.body.data
-
-        category=Category.query.get(form.category.data)
-        article.change_category(category)
-
-        article.delete_tags()
-        article.add_tags(form.tags.data.split(' '))
-
-        db.session.add(article)
-        flash('您的文章已经成功修改')
-        return redirect(url_for('main.article', article_name=article.name))
-    form.title.data = article.title
-    form.category.data = article.category.id
-    form.tags.data = " ".join(tag.name for tag in article.tags)
-    form.body.data = article.body
-    return render_template('edit_article.html', form=form)
-
-
 @main.route('/search', methods=['POST'])
 def search():
     articles = []
@@ -226,7 +96,7 @@ def search():
                                   + [tag.name for tag in article.tags]*3)
         sim = similarity(article_content, keys)
         articles.append((sim, article))
-    articles.sort(key=lambda x:x[0], reverse=True)
+    articles.sort(key=lambda x: x[0], reverse=True)
     return render_template('search.html', articles=articles[:20],
                            archives=Article.query.limit(10).all())
 

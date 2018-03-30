@@ -38,7 +38,7 @@
             <li><a href="{{ url_for('admin.index') }}">管理</a></li>
             {% endif %}
             {% if current_user.can(Permission.WRITE_ARTICLES) %}
-            <li><a href="{{ url_for('main.edit_article') }}">写作</a></li>
+            <li><a href="{{ url_for('article.edit') }}">写作</a></li>
             {% endif %}
             <li><a href="{{ url_for('main.user', username=current_user.username) }}">我的主页</a></li>
             <li role="separator" class="divider"></li>

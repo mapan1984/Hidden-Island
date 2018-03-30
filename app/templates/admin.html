@@ -19,7 +19,7 @@
         {% for article in loged_articles %}
         <tr>
           <th scope="row">
-            <a href="/{{article.name}}">{{article.title}}</a>
+            <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
           </th>
           {% if article.md5 %}
           <td>
@@ -54,7 +54,7 @@
         {% for md_article in not_loged_articles %}
         <tr>
           <th scope="row">
-            <a href="/{{md_article}}">{{md_article}}</a>
+            <a href="{{ url_for('article.article', article_name=md_article) }}">{{md_article}}</a>
           </th>
           <td>
             <a class="btn btn-primary btn-sm" href="/admin/render/{{md_article}}" role="button">render</a>

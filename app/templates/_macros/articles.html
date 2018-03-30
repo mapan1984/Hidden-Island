@@ -13,7 +13,7 @@ ouput：
   <li class="article">
     <div class=".column">
       <div class="article-title">
-        <a href="/{{ article.name }}">{{ article.title }}</a>
+        <a href="{{ url_for('article.article', article_name=article.name) }}">{{ article.title }}</a>
       </div>
       <div class="article-date">
         {{ article.date }}
@@ -24,17 +24,17 @@ ouput：
       <div class="edit">
       {% if current_user.is_authenticated %}
         {% if current_user == article.author %}
-          <a href="{{ url_for('main.modify_article', article_name=article.name) }}">
+          <a href="{{ url_for('article.modify', article_name=article.name) }}">
             <span class="label label-primary">Edit</span>
           </a>
-          <a href="{{ url_for('main.delete_article', article_name=article.name, next='/user/'+article.author.username) }}">
+          <a href="{{ url_for('article.delete', article_name=article.name, next='/user/'+article.author.username) }}">
             <span class="label label-danger">Delete</span>
           </a>
         {% elif current_user.is_administrator %}
-          <a href="{{ url_for('main.modify_article', article_name=article.name) }}">
+          <a href="{{ url_for('article.modify', article_name=article.name) }}">
             <span class="label label-primary">Edit [Admin]</span>
           </a>
-          <a href="{{ url_for('main.delete_article', article_name=article.name, next='/user/'+article.author.username) }}">
+          <a href="{{ url_for('article.delete', article_name=article.name, next='/user/'+article.author.username) }}">
             <span class="label label-danger">Delete [Admin]</span>
           </a>
         {% endif %}
