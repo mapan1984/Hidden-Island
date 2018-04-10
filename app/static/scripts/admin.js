@@ -35,7 +35,7 @@ $(function() {
         if (alertPlace) {
             insertAfter(alertDiv, alertPlace);
         } else {
-            console.log('class ', place, ' not exist.');
+            console.error(`class ${place} not exist.`);
         }
     }
 

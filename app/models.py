@@ -8,12 +8,13 @@ from datetime import datetime
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app, render_template, url_for
+from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 
 from app import db, login_manager
 from config import Config
 from app.misc import MD, convert_date
+from app.exceptions import ValidationError
 
 
 ##### Auth
@@ -39,12 +40,11 @@ class Role(db.Model):
     @staticmethod
     def insert_roles():
         roles = {
-            'User':(Permission.FOLLOW
-                    | Permission.COMMENT, True),
-            'Author':(Permission.FOLLOW
-                      | Permission.COMMENT
-                      | Permission.WRITE_ARTICLES
-                      | Permission.MODERATE_COMMENTS, False),
+            'User': (Permission.FOLLOW | Permission.COMMENT, True),
+            'Author': (Permission.FOLLOW
+                       | Permission.COMMENT
+                       | Permission.WRITE_ARTICLES
+                       | Permission.MODERATE_COMMENTS, False),
             'Administrator': (0xff, False)
         }
         for role_name in roles.keys():
@@ -216,6 +216,14 @@ class User(UserMixin, db.Model):
         except:
             return None
         return User.query.get(data['id'])
+
+    def to_json(self):
+        user_json = {
+            'url': url_for('api.get_user', id=self.id, _external=True),
+            'username': self.username,
+            'email': self.email,
+        }
+        return user_json
 
     def __repr__(self):
         return '<User %r - %s>' % (self.username, self.role.name)
@@ -393,14 +401,14 @@ class Article(db.Model):
         target.body_html = MD.convert(value)
 
     def to_json(self):
-        json_article = {
+        article_json = {
             'url': url_for('api.get_article', id=self.id, _external=True),
             'body': self.body,
             'body_html': self.body_html,
             'timestamp': self.timestamp,
-            #'author_url': url_for('api.get_user', id=self.author_id),
+            'author_url': url_for('api.get_user', id=self.author_id),
         }
-        return json_article
+        return article_json
 
     @staticmethod
     def from_json(json_article):
@@ -515,6 +523,26 @@ class Comment(db.Model):
 
     __mapper_args__ = {"order_by": desc(timestamp)}
 
+    def to_json(self):
+        comments = {
+            'body': self.body,
+            'author': self.author.username,
+            'timestamp': self.timestamp,
+            'author_id': self.author_id,
+            'article_id': self.article_id,
+        }
+        return comments
+
+    @staticmethod
+    def from_json(comment):
+        """根据客户端提交的json创建评论"""
+        body = comment.get('body')
+        author_id = comment.get('author_id')
+        article_id = comment.get('article_id')
+        if body is None or body == '':
+            raise ValidationError('comment does not have a body')
+        return Comment(body=body, author_id=author_id, article_id=article_id)
+
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         allowed_tags = ['a', 'abbr', 'acronym', 'b',
@@ -526,6 +554,7 @@ class Comment(db.Model):
     def __repr__(self):
         return '<Comment of %r for %r>'\
                 % (self.author.username, self.article.title)
+
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
 

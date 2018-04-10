@@ -24,8 +24,6 @@ def verify_password_or_token(email_or_token, password):
         匿名用户或token/password验证成功返回True
         token/hassword验证失败返回False
     """
-    print(email_or_token)
-    print(password)
     if email_or_token == '':  # 匿名用户
         g.current_user = AnonymousUser()
         return True

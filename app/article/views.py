@@ -22,7 +22,7 @@ def article(article_name):
     ratings = article.ratings.all()
     num_rating = len(ratings)
     try:
-        avg_rating = sum(map(lambda rating: rating.value, ratings))/num_rating
+        avg_rating = sum(map(lambda rating: rating.value, ratings)) / num_rating
     except ZeroDivisionError:
         avg_rating = None
 
@@ -41,6 +41,7 @@ def article(article_name):
                            current_user_rating=current_user_rating,
                            article_id=article.id, user_id=current_user_id)
 
+
 @article_blueprint.route('/edit', methods=['GET', 'POST'])
 @author_required
 def edit():
@@ -52,7 +53,7 @@ def edit():
                           body=form.body.data,
                           date=datetime.date.today(),
                           author=current_user._get_current_object())
-        category=Category.query.get(form.category.data)
+        category = Category.query.get(form.category.data)
         article.change_category(category)
         article.delete_tags()
         article.add_tags(form.tags.data.strip().split(' '))
@@ -71,7 +72,7 @@ def delete(article_name):
     else:
         flash(article.delete())
         return redirect(request.args.get('next')
-                    or url_for('user.user', username=current_user.username))
+                        or url_for('user.user', username=current_user.username))
 
 
 @article_blueprint.route('/modify/<article_name>', methods=['GET', 'POST'])
@@ -143,4 +144,3 @@ def moderate(comment_id):
         db.session.delete(comment)
         flash('评论已经删除')
     return redirect(url_for('article.article', article_name=comment.article.name))
-

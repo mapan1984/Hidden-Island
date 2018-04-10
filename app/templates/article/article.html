@@ -53,6 +53,8 @@
       </div>
     </div>
 
+    <div id="comment-box" data-user-id={{user_id}} data-article-id={{article_id}}></div>
+
     <div class="comment">
       <div class="comment-form">
       {% if current_user.is_authenticated %}
@@ -114,4 +116,5 @@
 {{ super() }}
 <script src="{{ url_for('static', filename='scripts/article.js') }}"></script>
 <script src="{{ url_for('static', filename='scripts/rating.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/comment.js') }}"></script>
 {% endblock %}

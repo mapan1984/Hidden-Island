@@ -27,4 +27,3 @@ def forbidden(message):
 def validation_error(e):
     """ValidationError的全局异常处理函数"""
     return bad_request(e.args[0])
-
