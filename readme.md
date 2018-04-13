@@ -5,10 +5,10 @@
 1. `FLASK_CONFIG`: (可选，默认值为`default`)决定以何种模式运行，可选`development`, `testing`, `production`, `heroku`, `default`
 2. `ADMIN_EMAIL`: 管理员的email，用于管理员登陆和管理员接收网站状态变化，网站初始时自动注册
 3. `ADMIN_PASSWORD`: 管理员的password，用于管理员登陆，网站初始时自动注册
-4. `MAIL_USERNAME`: 网站的email，用于向管理员以及用户发送邮件
-5. `MAIL_PASSWORD`: 网站email密码，用于登陆为`MAIL_USERNAME`提供服务的email服务器
+4. `MAIL_SENDER`: 网站的email，用于向管理员以及用户发送邮件
+5. `SENDGRID_API_KEY`: SendGrid's api key，利用SendGrid提供的邮件服务
 6. `SECRET_KEY`: (可选)用户注册及提交表单时使用的加密key
-7. `DEV_DATABASE_URL`: (可选)网站数据库地址
+7. `DATABASE_URL`: (可选)网站数据库地址，根据网站运行模式可设置`DEV_DATABASE_URL`, `TEST_DATABASE_URL`, `DATABASE_URL`
 
 ### 文章
 
@@ -35,4 +35,3 @@
 - [x] 支持用户评论系统
 - [x] 文章评分
 - [ ] 相关文章推荐系统
-

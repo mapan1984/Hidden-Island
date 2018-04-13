@@ -9,14 +9,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 # Mail_Config {{
-    MAIL_SERVER = 'smtp.163.com'
-    MAIL_PORT = 465
-    MAIL_USE_SSL = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_SUBJECT_PREFIX = '[HIDDEN-ISLAND]'
-    MAIL_SENDER = 'Hidden-Island <mapansky1984@163.com>'
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
+    MAIL_SENDER = os.environ.get('MAIL_SENDER')
+    SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 # end_mail_config }}
 
     # 文章目录
@@ -57,28 +53,31 @@ class ProductionConfig(Config):
         'sqlite:///' + os.path.join(BASE_DIR, 'data.sqlite')
 
     @classmethod
-    def init_app(cls, app):
-        Config.init_app(app)
+    def init_app(cls, app_):
+        Config.init_app(app_)
 
         # email errors to the administrators
         import logging
-        from logging.handlers import SMTPHandler
-        credentials = None
-        secure = None
-        if getattr(cls, 'MAIL_USERNAME', None) is not None:
-            credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
-            if getattr(cls, 'MAIL_USE_TLS', None):
-                secure = ()
-        mail_handler = SMTPHandler(
-            mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
-            fromaddr=cls.MAIL_SENDER,
-            toaddrs=[cls.ADMIN_EMAIL],
-            subject=cls.MAIL_SUBJECT_PREFIX + ' Application Error',
-            credentials=credentials,
-            secure=secure)
+        from app.log_handler import SendGridMailHandler
+        mail_handler = SendGridMailHandler(
+            api_key=os.getenv("SENDGRID_API_KEY"),
+            sender=cls.MAIL_SENDER,
+            recipient=cls.ADMIN_EMAIL,
+            subject=cls.MAIL_SUBJECT_PREFIX + 'Application error!'
+        )
+        mail_handler.setFormatter(logging.Formatter('''
+            Message type:       %(levelname)s
+            Location:           %(pathname)s:%(lineno)d
+            Module:             %(module)s
+            Function:           %(funcName)s
+            Time:               %(asctime)s
+
+            Message:
+
+            %(message)s
+        '''))
         mail_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(mail_handler)
-        Config.init_app(app)
+        app_.logger.addHandler(mail_handler)
 
 
 class HerokuConfig(ProductionConfig):

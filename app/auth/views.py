@@ -63,18 +63,6 @@ def register():
     return render_template('auth/register.html', form=form)
 
 
-@auth.route('/confirm/<token>')
-@login_required
-def confirm(token):
-    if current_user.confirmed:
-        return redirect(url_for('main.index'))
-    if current_user.confirm(token):
-        flash('你已经确认了您的账户，谢谢!')
-    else:
-        flash('确认链接无效或过期')
-    return redirect(url_for('main.index'))
-
-
 @auth.route('/unconfirmed')
 def unconfirmed():
     if current_user.is_anonymous or current_user.confirmed:
@@ -84,11 +72,23 @@ def unconfirmed():
 
 @auth.route('/confirm')
 @login_required
-def resend_confirmation():
+def confirm_request():
     token = current_user.generate_confirmation_token()
     send_email(current_user.email, 'Confirm Your Account',
                'auth/email/confirm', user=current_user, token=token)
-    flash('一封新的确认邮件已经发送到您的邮箱')
+    flash('一封确认邮件已经发送到您的邮箱')
+    return redirect(url_for('main.index'))
+
+
+@auth.route('/confirm/<token>')
+@login_required
+def confirm(token):
+    if current_user.confirmed:
+        return redirect(url_for('main.index'))
+    if current_user.confirm(token):
+        flash('你已经确认了您的账户，谢谢!')
+    else:
+        flash('确认链接无效或过期')
     return redirect(url_for('main.index'))
 
 
@@ -107,8 +107,8 @@ def change_password():
     return render_template("auth/change_password.html", form=form)
 
 
-@auth.route('/reset', methods=['GET', 'POST'])
-def password_reset_request():
+@auth.route('/reset-password', methods=['GET', 'POST'])
+def reset_password_request():
     if not current_user.is_anonymous:
         return redirect(url_for('main.index'))
     form = PasswordResetRequestForm()
@@ -125,8 +125,8 @@ def password_reset_request():
     return render_template('auth/reset_password.html', form=form)
 
 
-@auth.route('/reset/<token>', methods=['GET', 'POST'])
-def password_reset(token):
+@auth.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
     if not current_user.is_anonymous:
         return redirect(url_for('main.index'))
     form = PasswordResetForm()

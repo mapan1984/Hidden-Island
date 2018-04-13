@@ -116,3 +116,10 @@ def edit_profile(id):
     form.location.data = user.location
     form.about_me.data = user.about_me
     return render_template('user/edit.html', form=form, user=user)
+
+
+@admin.route('/test-error')
+@login_required
+@admin_required
+def error():
+    raise Exception("Beds are burning!")
