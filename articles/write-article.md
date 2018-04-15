@@ -1,8 +1,8 @@
 ---
 title: Blog文章写作说明
 date: Mon Oct 10 09:26:34 CST 2016
-category: write
-tag: markdown
+category: manual
+tags: [markdown]
 ---
 
 ### 元信息

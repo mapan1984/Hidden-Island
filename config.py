@@ -58,7 +58,7 @@ class ProductionConfig(Config):
 
         # email errors to the administrators
         import logging
-        from app.log_handler import SendGridMailHandler
+        from app.utils.log_handler import SendGridMailHandler
         mail_handler = SendGridMailHandler(
             api_key=os.getenv("SENDGRID_API_KEY"),
             sender=cls.MAIL_SENDER,

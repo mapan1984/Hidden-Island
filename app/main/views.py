@@ -1,7 +1,7 @@
 from flask import render_template, request, current_app
 
 from app.main import main
-from app.sim import similarity
+from app.utils.similarity import similarity
 from app.models import Category, Tag, Article, Permission
 
 

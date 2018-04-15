@@ -54,4 +54,3 @@ def send_email(to, subject, template, **kwargs):
     print('email from {} to {} sending...'.format(from_email, to_email))
 
     return thr
-

@@ -1,8 +1,8 @@
 import os
 
-from flask import request, redirect, url_for, render_template, \
-                  flash, current_app
-from flask_login import login_required
+from flask import (request, redirect, url_for, render_template,
+                   flash, current_app)
+from flask_login import login_required, current_user
 
 from app import db
 from config import Config
@@ -17,14 +17,12 @@ from app.admin.forms import EditProfileAdminForm
 @admin_required
 def index():
     # 获取已记录文件集合
-    loged_articles = Article.query.all()
-    # 获取存在的md文件的name集合
-    existed_md_articles = set()
-    for md_name in os.listdir(current_app.config['ARTICLES_SOURCE_DIR']):
-        existed_md_articles.add(md_name.split('.')[0])
+    loged_articles = Article.query.filter_by(author=current_user).all()
+    # 获取存在的markdown文件的name集合
+    existed_md_articles = {md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)}
     # 获取未被记录的md文件name的集合
-    not_loged_articles = existed_md_articles\
-                         - {article.name for article in loged_articles}
+    not_loged_articles = (existed_md_articles
+                          - {article.name for article in loged_articles})
     return render_template('admin/admin.html',
                            loged_articles=loged_articles,
                            not_loged_articles=not_loged_articles)

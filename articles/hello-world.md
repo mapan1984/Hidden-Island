@@ -1,11 +1,8 @@
 ---
 title: Hello, world!
 date: Mon Oct 10 09:03:28 CST 2016
-category: code
-tag: C
-     Python
-     JavaScript
-     Bash
+category: manual
+tags: [C,Python,JavaScript,Bash]
 ---
 
 ### C

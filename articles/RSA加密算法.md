@@ -1,9 +1,8 @@
 ---
 title: RSA加密算法
 date: Tue Jan 10 19:09:07 CST 2017
-category: code
-tag: ssh
-     RSA
+category: algorithm
+tags: [ssh,RSA]
 ---
 
 ## RSA算法

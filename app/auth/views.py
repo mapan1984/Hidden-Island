@@ -3,9 +3,9 @@ from flask_login import current_user, login_user, logout_user, login_required
 
 from app import db
 from app.auth import auth
-from app.auth.forms import LoginForm, RegistrationForm, ChangePasswordForm,\
-                           PasswordResetRequestForm, PasswordResetForm, \
-                           ChangeEmailForm
+from app.auth.forms import (LoginForm, RegistrationForm, ChangePasswordForm,
+                            PasswordResetRequestForm, PasswordResetForm,
+                            ChangeEmailForm)
 from app.models import User, Role
 from app.email import send_email
 
@@ -115,7 +115,7 @@ def reset_password_request():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            token = user.generate_password_reset_token()
+            token = user.generate_reset_password_token()
             send_email(user.email, 'Reset Your Password',
                        'auth/email/reset_password',
                        user=user, token=token,
@@ -149,7 +149,7 @@ def change_email_request():
     if form.validate_on_submit():
         if current_user.verify_password(form.password.data):
             new_email = form.email.data
-            token = current_user.generate_email_change_token(new_email)
+            token = current_user.generate_change_email_token(new_email)
             send_email(new_email, 'Confirm your email address',
                        'auth/email/change_email',
                        user=current_user, token=token)

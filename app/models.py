@@ -8,12 +8,13 @@ from datetime import datetime
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import BadSignature, SignatureExpired
 from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 
 from app import db, login_manager
 from config import Config
-from app.misc import MD, convert_date
+from app.utils.markdown import MD, convert_date
 from app.exceptions import ValidationError
 
 
@@ -97,8 +98,8 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(default=True).first()
 
     def can(self, permissions):
-        return self.role is not None \
-               and (self.role.permissions & permissions) == permissions
+        return (self.role is not None
+                and (self.role.permissions & permissions) == permissions)
 
     @property
     def is_administrator(self):
@@ -113,11 +114,13 @@ class User(UserMixin, db.Model):
         user = User.query.filter_by(email=email).first()
         if user is None:
             print('User: add admin')
-            user = User(email=email,
-                        username='admin',
-                        password=os.environ.get('ADMIN_PASSWORD'),
-                        confirmed=True,
-                        role=Role.query.filter_by(permissions=0xff).first())
+            user = User(
+                email=email,
+                username='admin',
+                password=os.environ.get('ADMIN_PASSWORD'),
+                confirmed=True,
+                role=Role.query.filter_by(permissions=0xff).first()
+            )
             db.session.add(user)
             db.session.commit()
         print('Add admin is done.')
@@ -146,7 +149,7 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except (BadSignature, SignatureExpired):
             return False
         if data.get('confirm') != self.id:
             return False
@@ -154,7 +157,7 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
-    def generate_password_reset_token(self, expiration=3600):
+    def generate_reset_password_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'reset': self.id})
 
@@ -162,7 +165,7 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except (BadSignature, SignatureExpired):
             return False
         if data.get('reset') != self.id:
             return False
@@ -170,7 +173,7 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
-    def generate_email_change_token(self, new_email, expiration=3600):
+    def generate_change_email_token(self, new_email, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expiration)
         return s.dumps({'change_email': self.id, 'new_email': new_email})
 
@@ -178,7 +181,7 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except (BadSignature, SignatureExpired):
             return False
         if data.get('change_email') != self.id:
             return False
@@ -213,7 +216,7 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token)
-        except:
+        except (BadSignature, SignatureExpired):
             return None
         return User.query.get(data['id'])
 
@@ -240,6 +243,7 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
+
 login_manager.anonymous_user = AnonymousUser
 
 
@@ -255,18 +259,17 @@ class Category(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    size = db.Column(db.Integer, default=0)
 
     # relationship
     articles = db.relationship('Article', backref='category', lazy='dynamic')
 
-    __mapper_args__ = {"order_by": desc(size)}
+    __mapper_args__ = {"order_by": name}
 
     @classmethod
     def clear(cls):
-        """清理size小于等于0的目录"""
+        """清理size小于等于0的标签"""
         for category in cls.query.all():
-            if category.size <= 0:
+            if category.articles is None:
                 db.session.delete(category)
         db.session.commit()
 
@@ -279,15 +282,14 @@ class Tag(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
-    size = db.Column(db.Integer, default=0)
 
-    __mapper_args__ = {"order_by": desc(size)}
+    __mapper_args__ = {"order_by": name}
 
     @classmethod
     def clear(cls):
         """清理size小于等于0的标签"""
         for tag in cls.query.all():
-            if tag.size <= 0:
+            if tag.articles is None:
                 db.session.delete(tag)
         db.session.commit()
 
@@ -312,81 +314,70 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
     title = db.Column(db.String(64), unique=True)  # 标题
-    datestr = db.Column(db.String(64))
     date = db.Column(db.Date)
-    timestamp = db.Column(db.DateTime, index=True,
-                          default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
     md5 = db.Column(db.String(32))
 
-    # relationship
-    tags = db.relationship('Tag',
-                           secondary=belong_to,
-                           backref=db.backref('articles', lazy='dynamic'),
-                           lazy='dynamic')
+    # Relationship
+    tags = db.relationship(
+        'Tag',
+        secondary=belong_to,
+        backref=db.backref('articles', lazy='dynamic'),
+        lazy='dynamic',
+    )
     comments = db.relationship('Comment', backref='article', lazy='dynamic')
     ratings = db.relationship('Rating', backref='article', lazy='dynamic')
 
     # ForeignKey
+    # backref='category'
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
+    # backref='author'
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     __mapper_args__ = {"order_by": desc(timestamp)}
 
     def add_tags(self, tag_names):
         """增加文章的tags
-        tag_names: tag名字组成的list
+        Args:
+            tag_names: tag名称组成的list
         """
         for tag_name in tag_names:
             tag = Tag.query.filter_by(name=tag_name).first()
             if tag is None:
-                tag = Tag(name=tag_name, size=0)
-            tag.size += 1
+                tag = Tag(name=tag_name)
             db.session.add(tag)
             self.tags.append(tag)
 
     def delete_tags(self):
         """删除文章的所有tag"""
         for tag in self.tags.all():
-            tag.size -= 1
             self.tags.remove(tag)
-            if tag.size == 0:
+            if tag.articles is None:
                 db.session.delete(tag)
 
     def change_category(self, category):
-        """改变文章的category(如果之前不存在category则增加)"""
-        old_category = self.category
+        """改变文章的category(如果之前不存在category则增加)
+        Args:
+            category: category的名称或Category的实例
+        """
         if isinstance(category, str):
             new_category = Category.query.filter_by(name=category).first()
+            if new_category is None:
+                new_category = Category(name=category)
+            self.category = new_category
         else:
-            new_category = category
-
-        if old_category is not None and new_category == old_category:
-            return None
-
-        if new_category is None:
-            new_category = Category(name=category, size=0)
-
-        if old_category is not None:
-            old_category.size -= 1
-            if old_category.size == 0:
-                db.session.delete(old_category)
-
-        new_category.size += 1
-        db.session.add(new_category)
-        self.category = new_category
+            self.category = category
 
     def delete(self):
         """删除存在的文章记录"""
         self.delete_tags()
-        self.category.size -= 1
-        if self.category.size == 0:
-            db.session.delete(self.category)
         db.session.delete(self)
         return "[article] %s is deleted" % self.title
 
     def get_md5(self):
+        """得到文章的md5值"""
         md5 = hashlib.md5()
         with open(self.sc_path, "rb") as scf:
             while True:
@@ -397,10 +388,11 @@ class Article(db.Model):
         return md5.hexdigest()
 
     @staticmethod
-    def on_change_body(target, value, oldvalue, initiator):
+    def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = MD.convert(value)
 
     def to_json(self):
+        """将文章信息转换为json格式"""
         article_json = {
             'url': url_for('api.get_article', id=self.id, _external=True),
             'body': self.body,
@@ -421,10 +413,10 @@ class Article(db.Model):
     def __repr__(self):
         return '<Article %r>' % self.name
 
-    # the following function are ready for the markdwon file
+    # The following function are ready for the markdwon file
     @property
     def md_name(self):
-        return self.name+'.md'
+        return self.name + '.md'
 
     @property
     def sc_path(self):
@@ -433,78 +425,89 @@ class Article(db.Model):
     def md_is_change(self):
         old_md5 = self.md5
         now_md5 = self.get_md5()
-        if old_md5 != now_md5:
-            return True
-        else:
-            return False
+        return old_md5 != now_md5
 
     def md_relog(self):
-        """`/articles`目录中的文章，文章记录已存在，更新文章记录中各属性"""
+        """对`/articles`目录中已经记录的文章，重新记录文章中各属性"""
         with open(self.sc_path, "r", encoding="utf-8") as scfd:
             self.body = scfd.read()
-            self.body_html = MD.convert(self.body)
 
-        self.title   = MD.Meta.get('title', [''])[0]
-        self.datestr = MD.Meta.get('date', [''])[0]
-        self.date    = convert_date(self.datestr)
-        self.md5     = self.get_md5()
+        self.body_html = MD.convert(self.body)
+        self.title = MD.Meta.get('title', '未标题')
+        print(MD.Meta.get('date'))
+        self.date = convert_date(MD.Meta.get('date'))
+        print(self.date)
+        self.md5 = self.get_md5()
+
         admin_role = Role.query.filter_by(permissions=0xff).first()
-        self.author  = User.query.filter_by(role=admin_role).first()
+        self.author = User.query.filter_by(role=admin_role).first()
 
-        category_name = MD.Meta.get('category', [''])[0]
+        category_name = MD.Meta.get('category', '未分类')
         self.change_category(category_name)
 
-        tag_names     = MD.Meta.get('tag')
+        tag_names = MD.Meta.get('tags', ['无标签'])
         self.delete_tags()
         self.add_tags(tag_names)
 
     @classmethod
     def md_render(cls, name):
-        """根据md文件生成文章记录，更新记录中各属性
-        name: 文件名(去除后缀)
+        """根据markdown文件生成文章记录，更新记录中各属性
+        Args:
+            name: 文件名(去除后缀)
         """
         article = Article(name=name)
         article.md_relog()
         db.session.add(article)
-        return "[article] %s is added" % name
+        return "[article] %s is added." % name
 
     @staticmethod
     def md_delete(name):
-        """删除存在文章记录的md文件"""
-        sc_path = os.path.join(Config.ARTICLES_SOURCE_DIR, name+'.md')
+        """删除markdown文件
+        Args:
+            name: markdown文件名
+        """
+        sc_path = os.path.join(Config.ARTICLES_SOURCE_DIR, name + '.md')
         if os.path.isfile(sc_path):
             os.remove(sc_path)
-            return "[md] %s is deleted." % name
+            return "[markdown file] %s is deleted." % name
 
     def md_refresh(self):
-        """更新存在的article记录"""
+        """更新存在的由markdown文件生成的article的记录"""
         self.md_relog()
         return "[article] %s is refreshed" % self.title
 
     @classmethod
     def md_render_all(cls):
-        """根据md文件生成html文件"""
-        # 获取存在的md文件的name集合
-        existed_md_articles = set()
-        for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR):
-            existed_md_articles.add(md_name.split('.')[0])
+        """记录未曾被记录的markdown文件"""
+        # 获取存在的markdown文件的name集合
+        existed_md_articles = {md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)}
 
-        # 获取已记录文件的name集合
-        loged_articles = {article.name for article in cls.query.all()}
+        # 获取管理员的已记录文件的name集合
+        admin_role = Role.query.filter_by(permissions=0xff).first()
+        admin_user = User.query.filter_by(role=admin_role).first()
+        loged_articles = {article.name for article in cls.query.filter_by(author=admin_user).all()}
 
-        # 增加(存在md文件却没有记录)的文件记录，并生成html文件
+        # 增加(存在markdown文件却没有记录)的文件记录
         for name in existed_md_articles - loged_articles:
             cls.md_render(name)
 
     @classmethod
     def md_refresh_all(cls):
-        """查看是否有文件改变，改变则更新html文件和数据库记录"""
-        for article in cls.query.all():
+        """查看是否有文件改变，改变则更新markdown文件记录"""
+        # 获取存在的markdown文件的name集合
+        existed_md_articles = {md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)}
+
+        # 获取管理员的已记录文件实例集合
+        admin_role = Role.query.filter_by(permissions=0xff).first()
+        admin_user = User.query.filter_by(role=admin_role).first()
+        loged_md_articles = {article for article in cls.query.filter_by(author=admin_user).all() if article.name in existed_md_articles}
+
+        for article in loged_md_articles:
             if article.md_is_change():
                 article.md_refresh()
 
 
-db.event.listen(Article.body, 'set', Article.on_change_body)
+db.event.listen(Article.body, 'set', Article.on_changed_body)
 
 
 class Comment(db.Model):
@@ -547,13 +550,17 @@ class Comment(db.Model):
     def on_changed_body(target, value, oldvalue, initiator):
         allowed_tags = ['a', 'abbr', 'acronym', 'b',
                         'code', 'em', 'i', 'strong']
-        target.body_html = bleach.linkify(bleach.clean(
+        target.body_html = bleach.linkify(
+            bleach.clean(
                 markdown.markdown(value, output_format='html'),
-                tags=allowed_tags, strip=True))
+                tags=allowed_tags,
+                strip=True
+            )
+        )
 
     def __repr__(self):
-        return '<Comment of %r for %r>'\
-                % (self.author.username, self.article.title)
+        return ('<Comment of %r for %r>'
+                % (self.author.username, self.article.title))
 
 
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
@@ -570,5 +577,5 @@ class Rating(db.Model):
     article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
 
     def __repr__(self):
-        return '<Rating of %r for %r>'\
-                % (self.user.username, self.article.title)
+        return ('<Rating of %r for %r>'
+                % (self.user.username, self.article.title))

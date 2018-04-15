@@ -11,6 +11,7 @@ PUNCT = set(u''':;"',<.>/?[{}]|\()-_=+!@#$%^&*~` ''')
 def remove(word):
     return word not in PUNCT
 
+
 def tags(article):
     # 这里使用了TF-IDF算法，所以分词结果会有些不同->https://github.com/fxsjy/jieba#3-关键词提取
     res = jieba.analyse.extract_tags(
@@ -48,13 +49,13 @@ def tf_idf(res1=None, res2=None):
 
 
 def numerator(vector1, vector2):
-    #分子
+    # 分子
     return sum(a * b for a, b in zip(vector1, vector2))
 
 
 def denominator(vector):
-    #分母
-    return math.sqrt(sum(a * b for a,b in zip(vector, vector)))
+    # 分母
+    return math.sqrt(sum(a * b for a, b in zip(vector, vector)))
 
 
 def similarity(str1, str2):
@@ -64,8 +65,8 @@ def similarity(str1, str2):
 
     # 相似度
     try:
-        similarity = numerator(vector1, vector2) \
-                     / (denominator(vector1) * denominator(vector2))
+        similarity = (numerator(vector1, vector2)
+                      / (denominator(vector1) * denominator(vector2)))
     except ZeroDivisionError:
         similarity = 0
 
@@ -79,4 +80,3 @@ if __name__ == '__main__':
     article_a = '我喜欢中国，也喜欢美国。'
     article_b = '我喜欢足球，不喜欢篮球。'
     similarity(article_a, article_b)
-

@@ -1,8 +1,8 @@
 ---
 title: LaTex Macros
 date: Tue Mar 28 19:52:51 CST 2017
-category: code
-tag: LaTex
+category: manual
+tags: [LaTex]
 ---
 
 ### newcommand

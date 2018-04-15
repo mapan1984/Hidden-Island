@@ -12,13 +12,14 @@ def permission_required(permission):
         def wrapper(*args, **kwargs):
             if not current_user.can(permission):
                 abort(403)
-            return fun(*args, **kwargs) 
+            return fun(*args, **kwargs)
         return wrapper
     return decorator
 
 
 def admin_required(fun):
     return permission_required(Permission.ADMINISTER)(fun)
+
 
 def author_required(fun):
     return permission_required(Permission.WRITE_ARTICLES)(fun)

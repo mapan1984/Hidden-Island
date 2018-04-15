@@ -15,13 +15,13 @@ ouput：
       {% if item == items[0] %}
         <li role="presentation" class="active">
           <a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">
-             {{ item.name }} <span class="badge">{{ item.size }}</span>
+             {{ item.name }}<span class="badge"> {{ item.articles.count() }}</span>
           </a>
         </li>
       {% else %}
         <li role="presentation">
           <a href="#{{ item.name }}" aria-controls="{{ item.name }}" role="tab" data-toggle="tab">
-             {{ item.name }} <span class="badge">{{ item.size }}</span>
+             {{ item.name }} <span class="badge">{{ item.articles.count() }}</span>
           </a>
         </li>
       {% endif %}

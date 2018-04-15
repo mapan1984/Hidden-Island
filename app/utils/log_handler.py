@@ -19,7 +19,6 @@ class SendGridMailHandler(logging.Handler):
         self.recipient = Email(recipient)
         self.subject = subject
 
-
     def emit(self, record):
         # record.message is the log message
         print(record.message)
@@ -38,7 +37,6 @@ class SendGridMailHandler(logging.Handler):
                 print("Email processed", response.body, response.status_code)
         except urllib.error.HTTPError as e:
             e.read()
-
 
 
 if __name__ == '__main__':
