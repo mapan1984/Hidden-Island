@@ -1,6 +1,8 @@
 import React from 'react'
 import Remarkable from 'remarkable'
 
+import './comments.css'
+
 
 /**
  * CommentBox
@@ -55,7 +57,6 @@ class CommentBox extends React.Component {
     render() {
         return (
             <div className="commentBox">
-              <h1>Comments</h1>
               <CommentForm
                 onCommentSubmit={this.handleCommentSubmit}
                 userId={this.props.userId}
@@ -75,15 +76,15 @@ class CommentList extends React.Component {
     render() {
         let commentNodes = this.props.data.map(
             (comment, index) => (
-                <Comment author={comment.author} key={"comment" + index}>
+                <Comment author={comment.author} timestamp={comment.timestamp} key={comment.id}>
                   {comment.body}
                 </Comment>
             )
         )
         return (
-            <div className="commentList">
+            <ul className="commentList">
               {commentNodes}
-            </div>
+            </ul>
         )
     }
 }
@@ -101,12 +102,15 @@ class Comment extends React.Component {
 
     render() {
         return (
-            <div className="comment">
-              <h2 className="commentAuthor">
+            <li className="comment">
+              <span className="commentAuthor">
                 {this.props.author}
-              </h2>
+              </span>
+              <span className="commentDate">
+                {this.props.timestamp}
+              </span>
               <span dangerouslySetInnerHTML={this.getRawMarkup()} />
-            </div>
+            </li>
         )
     }
 }

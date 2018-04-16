@@ -10,14 +10,13 @@ def comments():
     return jsonify(comments)
 
 
-@api.route('/article/<int:id>/comments', methods=['GET', 'POST'])
-def aritcle_comments(id):
-    print(id)
+@api.route('/article/<int:article_id>/comments', methods=['GET', 'POST'])
+def aritcle_comments(article_id):
     if request.method == 'POST':
         new_comment = request.form.to_dict()
         db.session.add(Comment.from_json(new_comment))
 
-    article = Article.query.get(id)
+    article = Article.query.get(article_id)
     comments = [comment.to_json() for comment in Comment.query.filter_by(article=article).all()]
     return jsonify(comments)
 

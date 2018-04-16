@@ -11,13 +11,16 @@ app = create_app(os.getenv('FLASK_CONFIG', 'default'))
 manager = Manager(app)
 migrate = Migrate(app, db)
 
+
 def make_shell_context():
     return dict(app=app, db=db, User=User, Role=Role,
                 Article=Article, Category=Category, Tag=Tag,
                 Comment=Comment, Rating=Rating)
 
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
+
 
 @manager.command
 def test():
@@ -25,6 +28,7 @@ def test():
     import unittest
     tests = unittest.TestLoader().discover('tests')
     unittest.TextTestRunner(verbosity=2).run(tests)
+
 
 @manager.command
 def deploy():
@@ -40,6 +44,7 @@ def deploy():
 
     # create admin user
     User.add_admin()
+
 
 if __name__ == '__main__':
     manager.run()

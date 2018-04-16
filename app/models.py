@@ -528,9 +528,10 @@ class Comment(db.Model):
 
     def to_json(self):
         comments = {
+            'id': self.id,
             'body': self.body,
             'author': self.author.username,
-            'timestamp': self.timestamp,
+            'timestamp': self.timestamp.strftime('%Y %B %d'),
             'author_id': self.author_id,
             'article_id': self.article_id,
         }

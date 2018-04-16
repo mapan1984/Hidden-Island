@@ -105,7 +105,7 @@ ul.articles {
 }
 ul > li.article {
   display: flex;
-  dispaly: -webkit-flex;
+  display: -webkit-flex;
   justify-content: space-between;
   padding: 8px;
   border-bottom: 1px solid #e0e0e0;
