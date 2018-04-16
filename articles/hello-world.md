@@ -1,6 +1,6 @@
 ---
 title: Hello, world!
-date: Mon Oct 10 09:03:28 CST 2016
+date: 2016-10-10 09:03:28
 category: manual
 tags: [C,Python,JavaScript,Bash]
 ---

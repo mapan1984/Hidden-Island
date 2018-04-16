@@ -1,6 +1,6 @@
 ---
 title: LaTex Macros
-date: Tue Mar 28 19:52:51 CST 2017
+date: 2017-03-28 19:52:51
 category: manual
 tags: [LaTex]
 ---

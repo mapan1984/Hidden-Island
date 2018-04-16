@@ -1,10 +1,8 @@
-import datetime
-
 from flask import flash, render_template, redirect, url_for, request, abort
 from flask_login import current_user, login_required
 
 from app import db
-from app.models import Article, Comment, Permission, Category, Rating
+from app.models import Article, Comment, Permission, Rating
 from app.decorators import permission_required, author_required
 from app.article import article as article_blueprint
 from app.article.forms import EditArticleForm
@@ -51,10 +49,8 @@ def edit():
         article = Article(title=form.title.data,
                           name=form.title.data,
                           body=form.body.data,
-                          date=datetime.date.today(),
                           author=current_user._get_current_object())
-        category = Category.query.get(form.category.data)
-        article.change_category(category)
+        article.change_category(form.category.data)
         article.delete_tags()
         article.add_tags(form.tags.data.strip().split(' '))
         db.session.add(article)
@@ -71,8 +67,8 @@ def delete(article_name):
         abort(403)
     else:
         flash(article.delete())
-        return redirect(request.args.get('next')
-                        or url_for('user.user', username=current_user.username))
+        return (redirect(request.args.get('next')
+                or url_for('user.user', username=current_user.username)))
 
 
 @article_blueprint.route('/modify/<article_name>', methods=['GET', 'POST'])
@@ -90,8 +86,7 @@ def modify(article_name):
             article.name = form.title.data
         article.body = form.body.data
 
-        category = Category.query.get(form.category.data)
-        article.change_category(category)
+        article.change_category(form.category.data)
 
         article.delete_tags()
         article.add_tags(form.tags.data.split(' '))

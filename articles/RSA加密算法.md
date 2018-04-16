@@ -1,6 +1,6 @@
 ---
 title: RSA加密算法
-date: Tue Jan 10 19:09:07 CST 2017
+date: 2017-01-10 19:09:07
 category: algorithm
 tags: [ssh,RSA]
 ---

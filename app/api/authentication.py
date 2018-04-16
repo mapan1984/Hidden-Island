@@ -26,6 +26,7 @@ def verify_password_or_token(email_or_token, password):
     """
     if email_or_token == '':  # 匿名用户
         g.current_user = AnonymousUser()
+        g.token_used = False
         return True
     if password == '':  # 使用token验证
         g.current_user = User.verify_auth_token(email_or_token)
@@ -33,13 +34,9 @@ def verify_password_or_token(email_or_token, password):
         return g.current_user is not None
     # 使用email和password验证
     user = User.query.filter_by(email=email_or_token).first()
-    if not user:
-        return False
-    if user.verify_password(password):
-        g.current_user = user
-        return True
-    else:
-        return False
+    g.current_user = user
+    g.token_used = False
+    return user is not None and user.verify_password(password)
 
 
 @auth.error_handler
@@ -50,7 +47,7 @@ def auth_error():
 @api.before_request
 @auth.login_required
 def before_request():
-    """拒绝已通过认证但没有确认账户的用户"""
+    """对于api蓝本中所有路由，拒绝未认证或未确认账户的用户"""
     if not g.current_user.is_anonymous \
             and not g.current_user.confirmed:
         return forbidden('Unconfirmed account')
@@ -58,6 +55,11 @@ def before_request():
 
 @api.route('/tokens/', methods=['GET'])
 def get_token():
+    """通过邮件与密码的认证方式获得token
+    Request:
+        GET /api/tokens http1.1
+        Authorization: Basic ${user_email}:${User_password}
+    """
     if g.current_user.is_anonymous or g.token_used:
         return unauthorized('Invalid credentials')
     return jsonify({

@@ -1,6 +1,6 @@
 ---
 title: blog config
-date: Tue Jan 31 16:42:24 CST 2017
+date: 2017-01-31 16:42:24
 category: manual
 tags: [flask, python]
 ---

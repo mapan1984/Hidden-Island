@@ -3,7 +3,7 @@ import os.path
 import hashlib
 import bleach
 import markdown
-from datetime import datetime
+from datetime import datetime, date
 
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,7 +14,8 @@ from flask_login import UserMixin, AnonymousUserMixin
 
 from app import db, login_manager
 from config import Config
-from app.utils.markdown import MD, convert_date
+from app.utils.markdown import MD
+from app.utils.convert import todate
 from app.exceptions import ValidationError
 
 
@@ -314,7 +315,8 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
     title = db.Column(db.String(64), unique=True)  # 标题
-    date = db.Column(db.Date)
+    # TODO: only use timestamp
+    date = db.Column(db.Date, default=date.today())
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
@@ -360,15 +362,16 @@ class Article(db.Model):
     def change_category(self, category):
         """改变文章的category(如果之前不存在category则增加)
         Args:
-            category: category的名称或Category的实例
+            category: category的名称或id
         """
-        if isinstance(category, str):
-            new_category = Category.query.filter_by(name=category).first()
-            if new_category is None:
-                new_category = Category(name=category)
+        if isinstance(category, int):
+            new_category = Category.query.get(category)
             self.category = new_category
-        else:
-            self.category = category
+            return
+        new_category = Category.query.filter_by(name=category).first()
+        if new_category is None:
+            new_category = Category(name=category)
+        self.category = new_category
 
     def delete(self):
         """删除存在的文章记录"""
@@ -404,11 +407,61 @@ class Article(db.Model):
 
     @staticmethod
     def from_json(json_article):
-        """根据客户端提交的json创建博客文章"""
+        title = json_article.get('title')
+        if title is None or title == '':
+            raise ValidationError('Article does not have title')
         body = json_article.get('body')
         if body is None or body == '':
-            raise ValidationError('article does not have a body')
-        return Article(body=body)
+            raise ValidationError('Article does not have body')
+        category = json_article.get('category', '未分类')
+        tags = json_article.get('tags', '无标签')
+        article = Article(
+            title=title,
+            name=title,
+            body=body,
+        )
+        article.change_category(category)
+        article.add_tags(tags)
+        return article
+
+    @staticmethod
+    def from_jekyll_json(json_article):
+        """同步jekyll文章"""
+        article_file_name = json_article.get('article_file_name')
+        content = json_article.get('content')
+        if content is None or content == '':
+            raise ValidationError('Article does not have a body ')
+
+        category_name = json_article.get('category_name')
+
+        article = Article()
+        article.body = content  # 必须
+        article.body_html = MD.convert(content)
+        title = MD.Meta.get('title')  # 必须
+        if title is None or title == '':
+            raise ValidationError('Article does not have title')
+        article.title = title
+        article.name = article.title  # 必须
+        date = MD.Meta.get('date')  # 优先文件头定义的date
+        if date:
+            article.date = todate(date)
+        else:
+            article.date = todate(article_file_name)
+        # TODO: only use timestamp
+        article.timestamp = datetime.combine(article.date, datetime.min.time())
+
+        tag_names = MD.Meta.get('tags', '未标记')
+
+        try:
+            article.change_category(category_name)
+            article.add_tags(tag_names)
+            db.session.add(article)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return None
+        else:
+            return article
 
     def __repr__(self):
         return '<Article %r>' % self.name
@@ -433,21 +486,36 @@ class Article(db.Model):
             self.body = scfd.read()
 
         self.body_html = MD.convert(self.body)
-        self.title = MD.Meta.get('title', '未标题')
-        print(MD.Meta.get('date'))
-        self.date = convert_date(MD.Meta.get('date'))
-        print(self.date)
+        title = MD.Meta.get('title')  # 必须
+        if title is None or title == '':
+            raise ValidationError('Article does not have title')
+        self.title = title
+
+        timestamp = MD.Meta.get('date')
+        if timestamp:
+            self.timestamp = todatetime(timestamp)
+        else:  # 否则试图从文件名提取date
+            self.timestamp = todatetime(self.name)
+
         self.md5 = self.get_md5()
 
         admin_role = Role.query.filter_by(permissions=0xff).first()
         self.author = User.query.filter_by(role=admin_role).first()
 
         category_name = MD.Meta.get('category', '未分类')
-        self.change_category(category_name)
-
         tag_names = MD.Meta.get('tags', ['无标签'])
-        self.delete_tags()
-        self.add_tags(tag_names)
+
+        try:
+            self.change_category(category_name)
+            self.delete_tags()
+            self.add_tags(tag_names)
+            db.session.add(self)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            return None
+        else:
+            return self
 
     @classmethod
     def md_render(cls, name):
@@ -455,10 +523,14 @@ class Article(db.Model):
         Args:
             name: 文件名(去除后缀)
         """
-        article = Article(name=name)
-        article.md_relog()
-        db.session.add(article)
-        return "[article] %s is added." % name
+        try:
+            article = Article(name=name).md_relog()
+        except ValidationError as exp:
+            return "Error when render %s: %s" % (name, str(exp))
+        else:
+            if not article:
+                return "Message: may be %s exsited." % name
+            return "[article] %s is added." % name
 
     @staticmethod
     def md_delete(name):
@@ -531,7 +603,7 @@ class Comment(db.Model):
             'id': self.id,
             'body': self.body,
             'author': self.author.username,
-            'timestamp': self.timestamp.strftime('%Y %B %d'),
+            'timestamp': self.timestamp.strftime('%Y %m %d'),
             'author_id': self.author_id,
             'article_id': self.article_id,
         }
@@ -544,7 +616,7 @@ class Comment(db.Model):
         author_id = comment.get('author_id')
         article_id = comment.get('article_id')
         if body is None or body == '':
-            raise ValidationError('comment does not have a body')
+            raise ValidationError('Comment does not have a body')
         return Comment(body=body, author_id=author_id, article_id=article_id)
 
     @staticmethod
