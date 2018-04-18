@@ -16,7 +16,7 @@ ouput：
         <a href="{{ url_for('article.article', article_name=article.name) }}">{{ article.title }}</a>
       </div>
       <div class="article-date">
-        {{ article.date }}
+        {{ article.timestamp.strftime('%Y %m %d') }}
       </div>
     </div>
     <div class=".column">

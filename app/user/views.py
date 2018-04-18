@@ -1,5 +1,5 @@
-from flask import abort, request, render_template, current_app, \
-                  url_for, flash, redirect
+from flask import (abort, request, render_template, current_app,
+                   url_for, flash, redirect)
 from flask_login import login_required, current_user
 
 from app import db
@@ -16,8 +16,10 @@ def user(username):
 
     page = request.args.get('page', 1, type=int)
     pagination = user.articles.paginate(
-            page, per_page=current_app.config['ARTICLES_PAGINATE'],
-            error_out=False)
+        page,
+        per_page=current_app.config['ARTICLES_PAGINATE'],
+        error_out=False
+    )
     articles = []
     for article in pagination.items:
         articles.append(article)

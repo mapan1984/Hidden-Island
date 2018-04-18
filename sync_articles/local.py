@@ -1,9 +1,7 @@
-from datetime import datetime
-
 from app import create_app, db
 from app.models import Article, Role, User
 from app.utils.markdown import MD
-from app.utils.convert import todate
+from app.utils.convert import todatetime
 
 
 from .utils import get_articles_info
@@ -23,8 +21,7 @@ def log_md(category_name, article_name, content):
     article.body_html = MD.convert(content)
     article.title = MD.Meta.get('title')
     article.name = article.title
-    article.date = todate(article_name)
-    article.timestamp = datetime.combine(article.date, datetime.min.time())
+    article.timestamp = todatetime(article_name)
 
     admin_role = Role.query.filter_by(permissions=0xff).first()
     article.author = User.query.filter_by(role=admin_role).first()

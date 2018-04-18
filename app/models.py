@@ -3,7 +3,7 @@ import os.path
 import hashlib
 import bleach
 import markdown
-from datetime import datetime, date
+from datetime import datetime
 
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -15,7 +15,7 @@ from flask_login import UserMixin, AnonymousUserMixin
 from app import db, login_manager
 from config import Config
 from app.utils.markdown import MD
-from app.utils.convert import todate
+from app.utils.convert import todatetime
 from app.exceptions import ValidationError
 
 
@@ -315,8 +315,6 @@ class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
     title = db.Column(db.String(64), unique=True)  # 标题
-    # TODO: only use timestamp
-    date = db.Column(db.Date, default=date.today())
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
@@ -428,11 +426,11 @@ class Article(db.Model):
     def from_jekyll_json(json_article):
         """同步jekyll文章"""
         article_file_name = json_article.get('article_file_name')
+        category_name = json_article.get('category_name')
+
         content = json_article.get('content')
         if content is None or content == '':
             raise ValidationError('Article does not have a body ')
-
-        category_name = json_article.get('category_name')
 
         article = Article()
         article.body = content  # 必须
@@ -442,15 +440,14 @@ class Article(db.Model):
             raise ValidationError('Article does not have title')
         article.title = title
         article.name = article.title  # 必须
-        date = MD.Meta.get('date')  # 优先文件头定义的date
-        if date:
-            article.date = todate(date)
-        else:
-            article.date = todate(article_file_name)
-        # TODO: only use timestamp
-        article.timestamp = datetime.combine(article.date, datetime.min.time())
 
-        tag_names = MD.Meta.get('tags', '未标记')
+        timestamp = MD.Meta.get('date')  # 优先文件头定义的date
+        if timestamp:
+            article.timestamp = todatetime(timestamp)
+        else:  # 否则试图从文件名提取date
+            article.timestamp = todatetime(article_file_name)
+
+        tag_names = MD.Meta.get('tags', ['无标签'])
 
         try:
             article.change_category(category_name)

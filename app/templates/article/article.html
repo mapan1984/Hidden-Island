@@ -5,9 +5,9 @@
 
 {% block head %}
 {{ super() }}
-<link href="{{ url_for('static', filename='styles/article.css')}}" rel="stylesheet">
-<link href="{{ url_for('static', filename='styles/syntax.css')}}" rel="stylesheet">
-<link href="{{ url_for('static', filename='styles/rating.css')}}" rel="stylesheet">
+<link href="{{ url_for('static', filename='styles/article.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='styles/syntax.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='styles/rating.css') }}" rel="stylesheet">
 <script type="text/javascript" async
   src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML">
 </script>
@@ -22,7 +22,7 @@
           <h2 class="blog-post-title">
             <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
           </h2>
-          <p class="blog-post-date">{{ article.date.strftime('%Y %m %d') }}</p>
+          <p class="blog-post-date">{{ article.timestamp.strftime('%Y %m %d') }}</p>
         </div>
         <div class="column">
           {% for tag in article.tags %}

@@ -21,15 +21,8 @@ class SendGridMailHandler(logging.Handler):
 
     def emit(self, record):
         # record.message is the log message
-        print(record.message)
-
         content = Content('text/plain', self.format(record))
-
-        print(content)
-
         mail = Mail(self.sender, self.subject, self.recipient, content)
-
-        print(mail)
 
         try:
             response = self.sg.client.mail.send.post(request_body=mail.get())
