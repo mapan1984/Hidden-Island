@@ -4,6 +4,7 @@ import hashlib
 import bleach
 import markdown
 from datetime import datetime
+from itertools import groupby
 
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -337,6 +338,14 @@ class Article(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     __mapper_args__ = {"order_by": desc(timestamp)}
+
+    @classmethod
+    def archives(cls):
+        archives = groupby(
+            cls.query.all(),
+            key=lambda article: (article.timestamp.year, article.timestamp.month)
+        )
+        return archives
 
     def add_tags(self, tag_names):
         """增加文章的tags

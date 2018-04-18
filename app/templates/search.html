@@ -37,12 +37,12 @@
 {% block archives %}
 <h4>历史</h4>
 <ol class="list-unstyled">
-  {% for archive in archives %}
+{% for archive_anchor in archives_anchor %}
   <li>
-    <a href="{{ url_for('article.article', article_name=archive.name) }}">
-      {{ archive.timestamp.strftime('%Y %m %d') }}
+    <a href="{{ url_for('main.archives', _anchor=archive_anchor) }}">
+      {{ archive_anchor }}
     </a>
   </li>
-  {% endfor %}
+{% endfor %}
 </ol>
 {% endblock %}

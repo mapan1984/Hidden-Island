@@ -2,14 +2,33 @@
 
 {% block title %}Archives{% endblock %}
 
+{% block head %}
+{{ super() }}
+<style>
+  .archives-content {
+    margin-top: 55px;
+  }
+  .target-fix {
+    padding-top: 55px;
+    margin-top: -55px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h4>Archives</h4>
-<ol class="list-unstyled">
-  {% for article in articles %}
+<ol class="list-unstyled archives-content">
+{% for (year, month), articles in archives %}
   <li>
-    <span>{{ article.timestamp.strftime('%Y %m %d') }}</span>
-    <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
+    <span id="{{ year }}-{{ month }}" class="target-fix">{{ year }} - {{ month }}</span>
+    <ul>
+    {% for article in articles %}
+      <li>
+        <span>{{ article.timestamp.strftime('%Y %m %d') }}</span>
+        <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
+      </li>
+    {% endfor %}
+    </ul>
   </li>
-  {% endfor %}
+{% endfor %}
 </ol>
 {% endblock %}
