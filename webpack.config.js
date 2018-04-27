@@ -1,7 +1,7 @@
 const path = require('path')
 
 module.exports = {             // __dirname 指webpack.config.js所在目录
-  mode: process.env.FLASK_CONFIG || 'development',
+  mode: process.env.FLASK_ENV || 'development',
   entry: path.resolve(__dirname, 'app/static/components/blog.jsx'),  // 唯一打包入口文件
   output: {
     path: path.resolve(__dirname, 'app/static/scripts'),  // 打包后文件存放的地方

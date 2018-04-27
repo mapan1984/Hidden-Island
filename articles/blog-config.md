@@ -7,7 +7,7 @@ tags: [flask, python]
 
 ### 预设环境变量
 
-1. `FLASK_CONFIG`: 决定以何种模式运行，可选`development`, `testing`, `production`, `heroku`, `default`，默认值为`default`
+1. `FLASK_ENV`: 决定以何种模式运行，可选`development`, `testing`, `production`, `heroku`, `default`，默认值为`production`
 2. `ADMIN_EMAIL`: 管理员的email，用于管理员登陆和管理员接收网站状态变化，网站初始时自动注册
 3. `ADMIN_PASSWORD`: 管理员的password，用于管理员登陆，网站初始时自动注册
 4. `MAIL_USERNAME`: 网站的email，用于向管理员以及用户发送邮件
