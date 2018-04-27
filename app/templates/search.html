@@ -2,7 +2,7 @@
 
 {% block blog_main %}
 <ul class="articles">
-  {% for sim, article in articles %}
+  {% for article, score in article_scores %}
   <li class="article">
     <div class=".column">
       <div class="article-title">
@@ -26,7 +26,7 @@
           </a>
         {% endif %}
       {% endif %}
-      <span class="label label-default">{{ sim }}</span>
+      <span class="label label-default">{{ "%f" % score }}</span>
       </div>
     </div>
   </li>

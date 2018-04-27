@@ -60,18 +60,18 @@ def archives():
     )
 
 
-@main.route('/search', methods=['POST'])
+@main.route('/search')
 def search():
-    articles = []
-    keys = request.form['keys']
+    article_scores = []
+    query = request.args.get('query')
     for article in Article.query.all():
         article_content = "".join([article.body]
                                   + [article.title] * 3
                                   + [article.category.name] * 3
                                   + [tag.name for tag in article.tags] * 3)
-        sim = similarity(article_content, keys)
-        articles.append((sim, article))
-    articles.sort(key=lambda x: x[0], reverse=True)
+        score = similarity(article_content, query)
+        article_scores.append((article, score))
+    article_scores.sort(key=lambda x: x[1], reverse=True)
 
     archives_anchor = []
     for index, ((year, month), articls) in enumerate(Article.archives()):
@@ -81,6 +81,6 @@ def search():
 
     return render_template(
         'search.html',
-        articles=articles[:8],
+        article_scores=article_scores[:8],
         archives_anchor=archives_anchor,
     )
