@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from flask_migrate import Migrate, upgrade
 
 from app import create_app, db
-from app.models import User, Role, Article, Category, Tag, Comment, Rating
+from app.models import (User, Role, Article, Category, Tag,
+                        Comment, Rating, Words, WordLocation)
 
 
 # 导入环境变量
@@ -23,7 +24,8 @@ migrate = Migrate(app, db)
 def make_shell_context():
     return dict(db=db, User=User, Role=Role,
                 Article=Article, Category=Category, Tag=Tag,
-                Comment=Comment, Rating=Rating)
+                Comment=Comment, Rating=Rating,
+                Words=Words, WordLocation=WordLocation)
 
 
 @app.cli.command()
@@ -45,6 +47,12 @@ def deploy():
 
     # create admin user
     User.add_admin()
+
+
+@app.cli.command()
+def buildindex():
+    """Build articles index."""
+    WordLocation.index_articles()
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 import os
+import re
 import os.path
 import hashlib
 import bleach
@@ -6,6 +7,7 @@ import markdown
 from datetime import datetime
 from itertools import groupby
 
+import jieba
 from sqlalchemy import desc
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -330,6 +332,7 @@ class Article(db.Model):
     )
     comments = db.relationship('Comment', backref='article', lazy='dynamic')
     ratings = db.relationship('Rating', backref='article', lazy='dynamic')
+    wordlocations = db.relationship('WordLocation', backref='article', lazy='dynamic')
 
     # ForeignKey
     # backref='category'
@@ -346,6 +349,47 @@ class Article(db.Model):
             key=lambda article: (article.timestamp.year, article.timestamp.month)
         )
         return archives
+
+    @property
+    def words(self):
+        """对自身的markdown格式内容进行中文分词并返回结果"""
+        words = [word.lower() for word in jieba.cut_for_search(self.body)]
+        if self.title:
+            words.extend([word.lower() for word in jieba.cut_for_search(self.title)])
+        if self.category:
+            words.append(self.category.name)
+        if self.tags:
+            words.extend([tag.name for tag in self.tags])
+        return words
+
+    def _is_indexed(self):
+        """如果文章已经在WordLocation中建立索引，则返回True"""
+        return WordLocation.query.filter_by(article=self).first() is not None
+
+    def _build_index(self):
+        """为文章建立索引"""
+        if self._is_indexed():
+            return
+        print('Indexing %s' % self.title)
+
+        for loc, word_value in enumerate(self.words):
+            if Words._should_ignore(word_value):
+                continue
+            word = Words.query.filter_by(value=word_value).first()
+            if word is None:
+                word = Words(value=word_value)
+                db.session.add(word)
+                db.session.commit()
+            wordlocation = WordLocation(article=self, word=word, location=loc)
+            db.session.add(wordlocation)
+            db.session.commit()
+
+    def _rebulid_index(self):
+        """重新为文章建立索引"""
+        for wordlocation in self.wordlocations:
+            db.session.delete(wordlocation)
+        db.session.commit()
+        self._build_index()
 
     def add_tags(self, tag_names):
         """增加文章的tags
@@ -400,6 +444,7 @@ class Article(db.Model):
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = MD.convert(value)
+        target._rebulid_index()
 
     def to_json(self):
         """将文章信息转换为json格式"""
@@ -652,9 +697,68 @@ class Rating(db.Model):
     value = db.Column(db.SmallInteger)
 
     # ForeignKey
+    # backref=user
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    # backref=article
     article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
 
     def __repr__(self):
         return ('<Rating of %r for %r>'
                 % (self.user.username, self.article.title))
+
+
+IGNORE_WORDS = set(['是', '的'])
+IGNORE_PATTERN = re.compile(r'(\W+|\s+|_+)')
+
+
+class Words(db.Model):
+    __tablename__ = 'words'
+
+    id = db.Column(db.Integer, primary_key=True)
+    value = db.Column(db.String(64), unique=True, index=True)
+
+    # Relationship
+    wordlocations = db.relationship('WordLocation', backref='word', lazy='dynamic')
+
+    @staticmethod
+    def _should_ignore(word):
+        return word in IGNORE_WORDS or IGNORE_PATTERN.match(word)
+
+    @classmethod
+    def clear(cls):
+        """清除所有索引"""
+        for word in cls.query.all():
+            db.session.delete(word)
+        db.session.commit()
+
+    def __repr__(self):
+        return "<Word %s>" % self.value
+
+
+class WordLocation(db.Model):
+    __tablename__ = 'wordlocation'
+
+    id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(db.Integer)
+
+    # ForeignKey
+    # backref='word'
+    word_id = db.Column(db.Integer, db.ForeignKey('words.id'))
+    # backref='article'
+    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
+
+    @classmethod
+    def index_articles(cls):
+        """遍历博客文章，建立索引"""
+        for article in Article.query.all():
+            article._build_index()
+
+    @classmethod
+    def clear(cls):
+        """清除所有索引"""
+        for wordlocation in cls.query.all():
+            db.session.delete(wordlocation)
+        db.session.commit()
+
+    def __repr__(self):
+        return "<WordLocation %s %s %d>" % (self.article.title, self.word.value, self.location)

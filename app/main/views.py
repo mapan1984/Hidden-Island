@@ -1,7 +1,8 @@
 from flask import render_template, request, current_app
 
 from app.main import main
-from app.utils.similarity import similarity
+# from app.utils.similarity import similarity
+from app.utils.searcher import query as searcher_query
 from app.models import Category, Tag, Article, Permission
 
 
@@ -62,16 +63,21 @@ def archives():
 
 @main.route('/search')
 def search():
-    article_scores = []
     query = request.args.get('query')
-    for article in Article.query.all():
-        article_content = "".join([article.body]
-                                  + [article.title] * 3
-                                  + [article.category.name] * 3
-                                  + [tag.name for tag in article.tags] * 3)
-        score = similarity(article_content, query)
-        article_scores.append((article, score))
-    article_scores.sort(key=lambda x: x[1], reverse=True)
+
+    # Via similarity
+    # article_scores = []
+    # for article in Article.query.all():
+    #     article_content = "".join([article.body]
+    #                               + [article.title] * 3
+    #                               + [article.category.name] * 3
+    #                               + [tag.name for tag in article.tags] * 3)
+    #     score = similarity(article_content, query)
+    #     article_scores.append((article, score))
+    # article_scores.sort(key=lambda x: x[1], reverse=True)
+
+    # Via utils.searcher.query
+    article_scores = searcher_query(query)
 
     archives_anchor = []
     for index, ((year, month), articls) in enumerate(Article.archives()):
@@ -81,6 +87,7 @@ def search():
 
     return render_template(
         'search.html',
+        query=query,
         article_scores=article_scores[:8],
         archives_anchor=archives_anchor,
     )

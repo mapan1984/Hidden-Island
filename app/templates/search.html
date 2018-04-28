@@ -1,37 +1,41 @@
 {% extends "_layouts/default.html" %}
 
 {% block blog_main %}
-<ul class="articles">
-  {% for article, score in article_scores %}
-  <li class="article">
-    <div class=".column">
-      <div class="article-title">
-        <a href="{{ url_for('article.article', article_name=article.name) }}">{{ article.title }}</a>
+{% if article_scores %}
+  <ul class="articles">
+    {% for article, score in article_scores %}
+    <li class="article">
+      <div class=".column">
+        <div class="article-title">
+          <a href="{{ url_for('article.article', article_name=article.name) }}">{{ article.title }}</a>
+        </div>
+        <div class="article-date">
+          {{ article.timestamp.strftime('%Y %m %d') }}
+        </div>
       </div>
-      <div class="article-date">
-        {{ article.timestamp.strftime('%Y %m %d') }}
-      </div>
-    </div>
-    <div class=".column">
-      <div class="post-author"><a href="{{ url_for('user.user', username=article.author.username) }}">{{ article.author.username }}</a></div>
-      <div class="edit">
-      {% if current_user.is_authenticated %}
-        {% if current_user == article.author %}
-          <a href="{{ url_for('article.modify', article_name=article.name) }}">
-            <span class="label label-primary">Edit</span>
-          </a>
-        {% elif current_user.is_administrator %}
-          <a href="{{ url_for('article.modify', article_name=article.name) }}">
-            <span class="label label-danger">Edit [Admin]</span>
-          </a>
+      <div class=".column">
+        <div class="post-author"><a href="{{ url_for('user.user', username=article.author.username) }}">{{ article.author.username }}</a></div>
+        <div class="edit">
+        {% if current_user.is_authenticated %}
+          {% if current_user == article.author %}
+            <a href="{{ url_for('article.modify', article_name=article.name) }}">
+              <span class="label label-primary">Edit</span>
+            </a>
+          {% elif current_user.is_administrator %}
+            <a href="{{ url_for('article.modify', article_name=article.name) }}">
+              <span class="label label-danger">Edit [Admin]</span>
+            </a>
+          {% endif %}
         {% endif %}
-      {% endif %}
-      <span class="label label-default">{{ "%f" % score }}</span>
+        <span class="label label-default">{{ "%f" % score }}</span>
+        </div>
       </div>
-    </div>
-  </li>
-  {% endfor %}
-</ul>
+    </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>你的查询 - {{ query }} 无匹配结果</p>
+{% endif %}
 {% endblock %}
 
 {% block archives %}
