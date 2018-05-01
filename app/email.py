@@ -24,6 +24,8 @@ def send(email):
         response = sg.client.mail.send.post(request_body=email.get())
         if response.status_code < 300:
             print("Email processed", response.body, response.status_code)
+        else:
+            print("Email processed Faild!")
     except urllib.error.HTTPError as e:
         e.read()
 

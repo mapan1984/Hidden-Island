@@ -1,0 +1,9 @@
+-r prod.txt
+# Docker Production Server
+gevent
+gunicorn
+
+# Database
+# pymysql
+psycopg2
+psycopg2-binary

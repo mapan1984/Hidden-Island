@@ -8,4 +8,9 @@ __pycache__
 # SQLite databases
 *.sqlite
 
+# node
 node_modules
+
+# docker
+postgresql
+mysql/Dockerfile

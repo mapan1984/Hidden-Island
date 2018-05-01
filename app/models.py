@@ -42,8 +42,8 @@ class Role(db.Model):
     # relationship
     users = db.relationship('User', backref='role', lazy='dynamic')
 
-    @staticmethod
-    def insert_roles():
+    @classmethod
+    def insert_roles(cls):
         roles = {
             'User': (Permission.FOLLOW | Permission.COMMENT, True),
             'Author': (Permission.FOLLOW
@@ -53,10 +53,10 @@ class Role(db.Model):
             'Administrator': (0xff, False)
         }
         for role_name in roles.keys():
-            role = Role.query.filter_by(name=role_name).first()
+            role = cls.query.filter_by(name=role_name).first()
             if role is None:
                 print('Role: add %s' % role_name)
-                role = Role(name=role_name)
+                role = cls(name=role_name)
             role.permissions = roles[role_name][0]
             role.default = roles[role_name][1]
             db.session.add(role)
@@ -97,7 +97,7 @@ class User(UserMixin, db.Model):
         super(User, self).__init__(**kwargs)
         if self.role is None:
             if self.email == current_app.config['ADMIN_EMAIL']:
-                self.role = Role.query.filter_by(permissions=0xff).frist()
+                self.role = Role.query.filter_by(name='Administrator').first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
 
@@ -109,25 +109,31 @@ class User(UserMixin, db.Model):
     def is_administrator(self):
         return self.can(Permission.ADMINISTER)
 
-    @staticmethod
-    def add_admin():
+    @classmethod
+    def add_admin(cls):
         email = os.environ.get('ADMIN_EMAIL')
         if email is None:
             print('ADMIN_EMAIL not find in os.environ')
             return
-        user = User.query.filter_by(email=email).first()
-        if user is None:
+
+        admin = cls.query.filter_by(email=email).first()
+        if admin is None:
             print('User: add admin')
-            user = User(
+            password = os.environ.get('ADMIN_PASSWORD')
+            if password is None:
+                print('ADMIN_PASSWORD not find in os.environ')
+                return
+            admin = cls(
+                username='mapan1984',
                 email=email,
-                username='admin',
-                password=os.environ.get('ADMIN_PASSWORD'),
+                password=password,
                 confirmed=True,
-                role=Role.query.filter_by(permissions=0xff).first()
             )
-            db.session.add(user)
+            db.session.add(admin)
             db.session.commit()
-        print('Add admin is done.')
+            print('Add admin is done.')
+        else:
+            print('Admin already exists.')
 
     def ping(self):
         """刷新用户的最后访问时间"""
@@ -270,6 +276,18 @@ class Category(db.Model):
     __mapper_args__ = {"order_by": name}
 
     @classmethod
+    def insert_categores(cls):
+        category_names = ['Algorithm', 'Tool', 'Program', 'Manual', 'System', 'Network']
+        for category_name in category_names:
+            category = cls.query.filter_by(name=category_name).first()
+            if category is None:
+                print('Category: add %s' % category_name)
+                category = cls(name=category_name)
+            db.session.add(category)
+        db.session.commit()
+        print('Insert categores is done.')
+
+    @classmethod
     def clear(cls):
         """清理size小于等于0的标签"""
         for category in cls.query.all():
@@ -386,9 +404,10 @@ class Article(db.Model):
 
     def _rebulid_index(self):
         """重新为文章建立索引"""
-        for wordlocation in self.wordlocations:
-            db.session.delete(wordlocation)
-        db.session.commit()
+        if self.wordlocations:
+            for wordlocation in self.wordlocations:
+                db.session.delete(wordlocation)
+            db.session.commit()
         self._build_index()
 
     def add_tags(self, tag_names):
@@ -444,7 +463,10 @@ class Article(db.Model):
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = MD.convert(value)
-        target._rebulid_index()
+        # 如果文章已存在，重新建立index
+        if target.id:
+            target._rebulid_index()
+        # TODO: 为新增文章建立index
 
     def to_json(self):
         """将文章信息转换为json格式"""
@@ -550,7 +572,7 @@ class Article(db.Model):
 
         self.md5 = self.get_md5()
 
-        admin_role = Role.query.filter_by(permissions=0xff).first()
+        admin_role = Role.query.filter_by(name='Administrator').first()
         self.author = User.query.filter_by(role=admin_role).first()
 
         category_name = MD.Meta.get('category', '未分类')
@@ -606,7 +628,7 @@ class Article(db.Model):
         existed_md_articles = {md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)}
 
         # 获取管理员的已记录文件的name集合
-        admin_role = Role.query.filter_by(permissions=0xff).first()
+        admin_role = Role.query.filter_by(name='Administrator').first()
         admin_user = User.query.filter_by(role=admin_role).first()
         loged_articles = {article.name for article in cls.query.filter_by(author=admin_user).all()}
 
@@ -621,7 +643,7 @@ class Article(db.Model):
         existed_md_articles = {md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)}
 
         # 获取管理员的已记录文件实例集合
-        admin_role = Role.query.filter_by(permissions=0xff).first()
+        admin_role = Role.query.filter_by(name='Administrator').first()
         admin_user = User.query.filter_by(role=admin_role).first()
         loged_md_articles = {article for article in cls.query.filter_by(author=admin_user).all() if article.name in existed_md_articles}
 

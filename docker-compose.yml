@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  postgres:
+    build: ./postgresql
+    restart: always
+    volumes:
+      - /var/lib/postgresql
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    restart: always
+    env_file: .env
+    expose:
+      - "5000"
+    volumes:
+      - ./app/static:/usr/src/app/static
+      - ./articles:/home/flasky/web/articles
+    command: /bin/bash ./boot.sh
+    depends_on:
+      - postgres
+
+  nginx:
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+    volumes:
+      - /www/static
+      - ./app/static:/usr/src/app/static
+    depends_on:
+      - web

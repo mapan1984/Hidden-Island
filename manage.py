@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
-import os
 from pathlib import Path
-
 from dotenv import load_dotenv
+
+
+# 导入环境变量
+env_path = Path('.') / '.flaskenv'
+if env_path.is_file():
+    load_dotenv(dotenv_path=env_path, verbose=True)
+
+env_path = Path('.') / '.env'
+if env_path.is_file():
+    load_dotenv(dotenv_path=env_path, verbose=True)
+
+
+import os
+from collections import defaultdict
+
 from flask_migrate import Migrate, upgrade
 
 from app import create_app, db
 from app.models import (User, Role, Article, Category, Tag,
                         Comment, Rating, Words, WordLocation)
-
-
-# 导入环境变量
-env_path = Path('.') / '.env'
-if env_path.is_file():
-    load_dotenv(dotenv_path=env_path, verbose=True)
 
 
 app = create_app(os.getenv('FLASK_ENV', 'default'))
@@ -47,6 +54,9 @@ def deploy():
 
     # create admin user
     User.add_admin()
+
+    # create categores
+    Category.insert_categores()
 
 
 @app.cli.command()

@@ -4,6 +4,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
+    JSON_AS_ASCII = False
     SECRET_KEY = os.environ.get('SECRET_KEY', 'hard_to_guess_string')
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
@@ -94,11 +95,35 @@ class HerokuConfig(ProductionConfig):
         app.logger.addHandler(file_handler)
 
 
+class DockerConfig(ProductionConfig):
+    POSTGRES_USER = os.environ.get('POSTGRES_USER')
+    POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
+    POSTGRES_DB = os.environ.get('POSTGRES_DB')
+    SQLALCHEMY_DATABASE_URI = 'postgresql://' + POSTGRES_USER + ':' + POSTGRES_PASSWORD + '@postgres:5432/' + POSTGRES_DB
+
+    # MYSQL_USER = os.environ.get('MYSQL_USER')
+    # MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+    # MYSQL_DATABASE = os.environ.get('MYSQL_DATABASE')
+    # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + MYSQL_USER + ':' + MYSQL_PASSWORD + '@mysql/' + MYSQL_DATABASE
+
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        # log to stderr
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
+
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig,
     'heroku': HerokuConfig,
+    'docker': DockerConfig,
 
     'default': DevelopmentConfig
 }
