@@ -2,18 +2,18 @@ import os
 
 from flask import (request, redirect, url_for, render_template,
                    flash, current_app)
-from flask_login import login_required, current_user
+from flask_login import current_user
 
-from app import db
+from app import db, redis
 from config import Config
 from app.models import Article, User, Role
 from app.decorators import admin_required
 from app.admin import admin
 from app.admin.forms import EditProfileAdminForm
+from app.tasks import add_together
 
 
 @admin.route('/')
-@login_required
 @admin_required
 def index():
     # 获取已记录文件集合
@@ -27,8 +27,8 @@ def index():
                            loged_articles=loged_articles,
                            not_loged_articles=not_loged_articles)
 
+
 @admin.route('/upload', methods=['POST'])
-@login_required
 @admin_required
 def upload():
     file = request.files['file']
@@ -45,52 +45,52 @@ def upload():
         flash("上传 %s 失败" % filename)
     return redirect(url_for('admin.index'))
 
+
 @admin.route('/render/<article_name>')
-@login_required
 @admin_required
 def render(article_name):
     flash(Article.md_render(article_name))
     return redirect(url_for('admin.index'))
 
+
 @admin.route('/refresh/<article_name>')
-@login_required
 @admin_required
 def refresh(article_name):
     article = Article.query.filter_by(name=article_name).first()
     return article.md_refresh()
 
+
 @admin.route('/delete/md/<article_name>')
-@login_required
 @admin_required
 def delete_md(article_name):
     flash(Article.md_delete(article_name))
     return redirect(url_for('admin.index'))
 
+
 @admin.route('/delete/html/<article_name>')
-@login_required
 @admin_required
 def delete_html(article_name):
     article = Article.query.filter_by(name=article_name).first()
     flash(article.delete())
     return redirect(url_for('admin.index'))
 
+
 @admin.route('/render_all')
-@login_required
 @admin_required
 def render_all():
     Article.md_render_all()
     flash("Render all articles succeeded")
     return redirect(url_for('admin.index'))
 
+
 @admin.route('/refresh_all')
-@login_required
 @admin_required
 def refresh_all():
     Article.md_refresh_all()
     return "Refresh all articles succeeded"
 
+
 @admin.route('/edit_profile/<int:id>', methods=['GET', 'POST'])
-@login_required
 @admin_required
 def edit_profile(id):
     user = User.query.get_or_404(id)
@@ -117,7 +117,22 @@ def edit_profile(id):
 
 
 @admin.route('/test-error')
-@login_required
 @admin_required
-def error():
+def test_error():
     raise Exception("Beds are burning!")
+
+
+@admin.route('/test-task')
+@admin_required
+def test_task():
+    add_together.delay(1, 2)
+    flash('test task')
+    return redirect(url_for('admin.index'))
+
+
+@admin.route('/test-redis')
+def test_redis():
+    redis.set('test_redis', 'hello')
+    flash(redis.get('test_redis'))
+    redis.delete('test_redis')
+    return redirect(url_for('admin.index'))

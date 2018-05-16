@@ -6,15 +6,21 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 class Config:
     JSON_AS_ASCII = False
     SECRET_KEY = os.environ.get('SECRET_KEY', 'hard_to_guess_string')
+
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
-# Mail_Config {{
+    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '')
+
+    CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
+    CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
+
+    # Mail_Config
     MAIL_SUBJECT_PREFIX = '[HIDDEN-ISLAND]'
     ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL')
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
     SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-# end_mail_config }}
 
     # 文章目录
     ARTICLES_SOURCE_DIR = os.path.join(BASE_DIR, 'articles')
@@ -100,6 +106,12 @@ class DockerConfig(ProductionConfig):
     POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
     POSTGRES_DB = os.environ.get('POSTGRES_DB')
     SQLALCHEMY_DATABASE_URI = 'postgresql://' + POSTGRES_USER + ':' + POSTGRES_PASSWORD + '@postgres:5432/' + POSTGRES_DB
+
+    REDIS_HOST = os.getenv('DOCKER_REDIS_HOST', 'localhost')
+    REDIS_PASSWORD = os.getenv('DOCKER_REDIS_PASSWORD', '')
+
+    CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
+    CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
 
     # MYSQL_USER = os.environ.get('MYSQL_USER')
     # MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')

@@ -68,11 +68,7 @@ def search():
     # Via similarity
     # article_scores = []
     # for article in Article.query.all():
-    #     article_content = "".join([article.body]
-    #                               + [article.title] * 3
-    #                               + [article.category.name] * 3
-    #                               + [tag.name for tag in article.tags] * 3)
-    #     score = similarity(article_content, query)
+    #     score = similarity(article.content, query)
     #     article_scores.append((article, score))
     # article_scores.sort(key=lambda x: x[1], reverse=True)
 

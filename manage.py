@@ -13,17 +13,17 @@ if env_path.is_file():
     load_dotenv(dotenv_path=env_path, verbose=True)
 
 
-import os
-from collections import defaultdict
+from itertools import combinations
 
+from flask.cli import AppGroup
 from flask_migrate import Migrate, upgrade
 
-from app import create_app, db
+from app import app, db, redis
 from app.models import (User, Role, Article, Category, Tag,
                         Comment, Rating, Words, WordLocation)
+from app.utils.similarity import similarity
 
 
-app = create_app(os.getenv('FLASK_ENV', 'default'))
 migrate = Migrate(app, db)
 
 
@@ -59,10 +59,42 @@ def deploy():
     Category.insert_categores()
 
 
-@app.cli.command()
-def buildindex():
-    """Build articles index."""
-    WordLocation.index_articles()
+build_cli = AppGroup('build')
+
+
+@build_cli.command('index')
+def build_index():
+    """ Build articles searcher engine index. """
+    for article in Article.query.all():
+        article._build_index()
+
+
+@build_cli.command('critics')
+def build_critics():
+    """ Cache all aritcles rattings. """
+    for rating in Rating.query.all():
+        username = rating.user.username
+        article_name = rating.article.name
+        rating_value = rating.value
+
+        # person_prefs.hset(username, article_name, rating_value)
+
+        # item_prefs.hset(article_name, username, rating_value)
+
+        print(f'Cache rattings of {article_name} & {username} := {rating_value}')
+
+
+@build_cli.command('similarity')
+def build_similarity():
+    """ Cache all articles similarities. """
+    for a, b in combinations(Article.query.all(), 2):
+        simi = similarity(a.content, b.content)
+        redis.zadd(a.name, simi, b.name)
+        redis.zadd(b.name, simi, a.name)
+        print(f'Cache similarity of {a.name} & {b.name} := {simi}')
+
+
+app.cli.add_command(build_cli)
 
 
 if __name__ == '__main__':

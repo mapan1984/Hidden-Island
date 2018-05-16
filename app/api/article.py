@@ -35,6 +35,7 @@ def new_article():
         )
     article.author = g.current_user
     db.session.add(article)
+    db.session.commit()
     return (
         # 201 - 已创建
         jsonify(article.to_json()),
@@ -63,6 +64,9 @@ def sync_article():
     article.author = g.current_user
     db.session.add(article)
     db.session.commit()
+    # XXX: 建立文章索引应在后台进行
+    article._build_index()
+    article._cache_similar()
     return (
         # 201 - 已创建
         jsonify(article.to_json()),

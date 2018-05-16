@@ -1,7 +1,8 @@
 from flask import flash, render_template, redirect, url_for, request, abort
 from flask_login import current_user, login_required
 
-from app import db
+
+from app import db, redis
 from app.models import Article, Comment, Permission, Rating
 from app.decorators import permission_required, author_required
 from app.article import article as article_blueprint
@@ -15,6 +16,9 @@ def article(article_name):
         article_name: 文件名(xxx)
     """
     article = Article.query.filter_by(name=article_name).first_or_404()
+
+    # 相似文章
+    sim_articles = redis.zrevrange(article.name, 0, 4, withscores=True)
 
     # 获取评分情况
     ratings = article.ratings.all()
@@ -35,6 +39,7 @@ def article(article_name):
         current_user_id = None
 
     return render_template('article/article.html', article=article,
+                           sim_articles=sim_articles,
                            num_rating=num_rating, avg_rating=avg_rating,
                            current_user_rating=current_user_rating,
                            article_id=article.id, user_id=current_user_id)
@@ -44,16 +49,21 @@ def article(article_name):
 @author_required
 def edit():
     form = EditArticleForm()
-    if current_user.can(Permission.WRITE_ARTICLES) \
-            and form.validate_on_submit():
-        article = Article(title=form.title.data,
-                          name=form.title.data,
-                          body=form.body.data,
-                          author=current_user._get_current_object())
+    if form.validate_on_submit():
+        article = Article(
+            title=form.title.data,
+            name=form.title.data,
+            body=form.body.data,
+            author=current_user._get_current_object()
+        )
         article.change_category(form.category.data)
         article.delete_tags()
         article.add_tags(form.tags.data.strip().split(' '))
         db.session.add(article)
+        db.session.commit()
+        # XXX: 应在后台进行
+        article._build_index()
+        article._cache_similar()
         return redirect(url_for('article.article', article_name=article.name))
     return render_template('article/edit.html', form=form)
 
@@ -79,8 +89,7 @@ def modify(article_name):
     if current_user != article.author \
             and not current_user.can(Permission.ADMINISTER):
         abort(403)
-    if current_user.can(Permission.WRITE_ARTICLES) \
-            and form.validate_on_submit():
+    if form.validate_on_submit():
         article.title = form.title.data
         if article.name is None:
             article.name = form.title.data
@@ -92,6 +101,11 @@ def modify(article_name):
         article.add_tags(form.tags.data.split(' '))
 
         db.session.add(article)
+        db.session.commit()
+        # XXX: 应在后台进行
+        article._rebuild_index()
+        article._cache_similar()
+
         flash('您的文章已经成功修改')
         return redirect(url_for('article.article', article_name=article.name))
     form.title.data = article.title

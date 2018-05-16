@@ -1,5 +1,5 @@
 """
-文章相似度判断
+文章内容相似度判断
 """
 
 import re
@@ -14,19 +14,24 @@ IGNORE_WORDS = set(['是', '的'])
 IGNORE_PATTERN = re.compile(r'(\W+|\s+|_+)')
 
 
-def _not_ignore(word):
+def should_ignore(word):
+    """ 如果word应被ignore，返回true """
+    return word in IGNORE_WORDS or IGNORE_PATTERN.match(word)
+
+
+def not_should_ignore(word):
     """ 如果word不应被ignore，返回true """
-    return not (word in IGNORE_WORDS or IGNORE_PATTERN.match(word))
+    return not should_ignore(word)
 
 
-def get_words_weight(article):
-    """ 对article进行分词处理
+def get_words_weight(string):
+    """ 对string进行分词处理
     Args:
-        article (app.models.Article): 文章对象
+        string: 要进行分词的字符串
     Return:
         返回词与词频信息字典(collections.Counter)，格式为{word1: weight, word2: weight, ...}
     """
-    words = [word.lower() for word in jieba.cut_for_search(article) if _not_ignore(word)]
+    words = [word.lower() for word in jieba.cut_for_search(string) if not_should_ignore(word)]
     return Counter(words)
 
 
@@ -78,8 +83,8 @@ def similarity(str1, str2):
     """
     # 关键词向量
     vector1, vector2 = get_vectors(
-        words_weight_1=get_words_weight(article=str1),
-        words_weight_2=get_words_weight(article=str2)
+        words_weight_1=get_words_weight(str1),
+        words_weight_2=get_words_weight(str2)
     )
 
     # 以向量距离衡量相似度

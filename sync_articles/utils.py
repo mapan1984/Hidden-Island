@@ -24,7 +24,7 @@ def get_articles_info(articles_path):
             (category_name, article_path),
         ]
     """
-    category_names = [dir.name for dir in articles_path.iterdir()]
+    category_names = [dir.name.title() for dir in articles_path.iterdir()]
 
     articles_info = []
     for category_name in category_names:

@@ -10,6 +10,10 @@ while true; do
     echo Deploy command failed, retrying in 10 secs...
 done
 
-flask buildindex
+# nohup flask build index > /dev/null 2>&1 &
+flask build index
+
+# nohup flask build similarity > /dev/null 2>&1 &
+flask build similarity
 
 exec gunicorn -b :5000 --access-logfile - --error-logfile - manage:app

@@ -1,6 +1,16 @@
 version: '3'
 
 services:
+  redis:
+    build: ./redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # mysql:
+  #   build: ./mysql
+  #   restart: always
+
   postgres:
     build: ./postgresql
     restart: always
@@ -20,6 +30,7 @@ services:
       - ./articles:/home/flasky/web/articles
     command: /bin/bash ./boot.sh
     depends_on:
+      - redis
       - postgres
 
   nginx:

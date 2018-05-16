@@ -100,18 +100,24 @@
     };
 })(jQuery);
 
+/**
+ * @param {number} initTop 初始距顶部距离
+ * @param {number} finalTop 最终希望距顶部距离
+ */
 $(document).ready(function() {
     let toc = $('#toc');                      // dom侧栏
     toc.toc();                                // fun生成侧栏标题目录
 
     $('body').scrollspy({ target: '#toc' });  // fun开启滚动监听
 
+    let initTop = 550;
+    let finalTop = 80;
     $(window).on('scroll', function(){        // fun动态调整侧栏位置
         let osTop = $(document).scrollTop();  // num获取滚动条距离顶部的高度
-        if (osTop <= 110) {
-            toc.css('top', (300 - osTop) + 'px');
+        if (osTop <= initTop) {
+            toc.css('top', (initTop - osTop + osTop/initTop*finalTop) + 'px');
         } else {
-            toc.css('top', '80px');
+            toc.css('top', finalTop + 'px');
         }
     });
 });

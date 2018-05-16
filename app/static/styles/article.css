@@ -90,7 +90,6 @@ div.blog-rating .avg {
 div.blog-post-tip #toc {
   position: fixed;
   padding: 2px;
-  top: 300px;
 }
 div.blog-post-tip #toc span{
   position: relative;
@@ -98,7 +97,7 @@ div.blog-post-tip #toc span{
 }
 div.blog-post-tip #back-to-top {
   position: fixed;
-  bottom:30px;
+  bottom: 80px;
 }
 
 /* 屏幕过窄是隐藏post-tip */

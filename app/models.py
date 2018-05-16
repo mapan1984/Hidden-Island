@@ -1,5 +1,4 @@
 import os
-import re
 import os.path
 import hashlib
 import bleach
@@ -15,10 +14,12 @@ from itsdangerous import BadSignature, SignatureExpired
 from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 
-from app import db, login_manager
+from app import db, redis, login_manager
 from config import Config
 from app.utils.markdown import MD
+from app.utils.similarity import similarity
 from app.utils.convert import todatetime
+from app.utils.similarity import should_ignore
 from app.exceptions import ValidationError
 
 
@@ -369,15 +370,18 @@ class Article(db.Model):
         return archives
 
     @property
+    def content(self):
+        """整合标题、分类、标签等内容并返回，用于文章的相似性判断"""
+        content = " ".join([self.body]
+                           + [self.title] * 3
+                           + [self.category.name] * 3
+                           + [tag.name for tag in self.tags] * 3)
+        return content
+
+    @property
     def words(self):
         """对自身的markdown格式内容进行中文分词并返回结果"""
-        words = [word.lower() for word in jieba.cut_for_search(self.body)]
-        if self.title:
-            words.extend([word.lower() for word in jieba.cut_for_search(self.title)])
-        if self.category:
-            words.append(self.category.name)
-        if self.tags:
-            words.extend([tag.name for tag in self.tags])
+        words = [word.lower() for word in jieba.cut_for_search(self.content)]
         return words
 
     def _is_indexed(self):
@@ -402,13 +406,33 @@ class Article(db.Model):
             db.session.add(wordlocation)
             db.session.commit()
 
-    def _rebulid_index(self):
-        """重新为文章建立索引"""
+    def _del_index(self):
+        """删除文章索引"""
         if self.wordlocations:
             for wordlocation in self.wordlocations:
                 db.session.delete(wordlocation)
             db.session.commit()
+
+    def _rebuild_index(self):
+        """重新为文章建立索引"""
+        self._del_index()
         self._build_index()
+
+    def _cache_similar(self):
+        print(f"Cache {self.name}")
+        for other in Article.query.all():
+            if self == other:
+                continue
+            similar = similarity(self.content, other.content)
+            redis.zadd(self.name, similar, other.name)
+            redis.zadd(other.name, similar, other.name)
+
+    def _delete_cache(self):
+        redis.delete(self.name)
+        for other in Article.query.all():
+            if self == other:
+                continue
+            redis.zdelete(other.name, self.name)
 
     def add_tags(self, tag_names):
         """增加文章的tags
@@ -446,6 +470,9 @@ class Article(db.Model):
     def delete(self):
         """删除存在的文章记录"""
         self.delete_tags()
+        # XXX: 后台执行
+        self._del_index()
+        self._delete_cache()
         db.session.delete(self)
         return "[article] %s is deleted" % self.title
 
@@ -463,10 +490,11 @@ class Article(db.Model):
     @staticmethod
     def on_changed_body(target, value, oldvalue, initiator):
         target.body_html = MD.convert(value)
-        # 如果文章已存在，重新建立index
-        if target.id:
-            target._rebulid_index()
         # TODO: 为新增文章建立index
+        # NOTE: 要注意文章内容改变则立即执行，
+        #       而此时可能文章还没有id(要db.commit后)，
+        #       并且文章的标题、目录和标签可能未改变
+        # rebuild_index.delay(target)
 
     def to_json(self):
         """将文章信息转换为json格式"""
@@ -489,6 +517,7 @@ class Article(db.Model):
             raise ValidationError('Article does not have body')
         category = json_article.get('category', '未分类')
         tags = json_article.get('tags', '无标签')
+        # TODO: 如果文章title(name)重复应进行提示
         article = Article(
             title=title,
             name=title,
@@ -603,6 +632,9 @@ class Article(db.Model):
         else:
             if not article:
                 return "Message: may be %s exsited." % name
+            # XXX: 后台执行
+            article._build_index()
+            article._cache_similar()
             return "[article] %s is added." % name
 
     @staticmethod
@@ -619,6 +651,9 @@ class Article(db.Model):
     def md_refresh(self):
         """更新存在的由markdown文件生成的article的记录"""
         self.md_relog()
+        # XXX: 后台执行
+        self._rebuild_index()
+        self._cache_similar()
         return "[article] %s is refreshed" % self.title
 
     @classmethod
@@ -729,10 +764,6 @@ class Rating(db.Model):
                 % (self.user.username, self.article.title))
 
 
-IGNORE_WORDS = set(['是', '的'])
-IGNORE_PATTERN = re.compile(r'(\W+|\s+|_+)')
-
-
 class Words(db.Model):
     __tablename__ = 'words'
 
@@ -744,7 +775,7 @@ class Words(db.Model):
 
     @staticmethod
     def _should_ignore(word):
-        return word in IGNORE_WORDS or IGNORE_PATTERN.match(word)
+        return should_ignore(word)
 
     @classmethod
     def clear(cls):
@@ -770,12 +801,6 @@ class WordLocation(db.Model):
     article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
 
     @classmethod
-    def index_articles(cls):
-        """遍历博客文章，建立索引"""
-        for article in Article.query.all():
-            article._build_index()
-
-    @classmethod
     def clear(cls):
         """清除所有索引"""
         for wordlocation in cls.query.all():
@@ -783,4 +808,4 @@ class WordLocation(db.Model):
         db.session.commit()
 
     def __repr__(self):
-        return "<WordLocation %s %s %d>" % (self.article.title, self.word.value, self.location)
+        return f"<WordLocation {self.article.title} {self.word.value} {self.location}>"

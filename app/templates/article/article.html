@@ -104,6 +104,16 @@
   </div>
   <div class="col-sm-3 col-sm-offset-1">
     <div class="blog-post-tip">
+      <div id="similarity">
+        <span class="label label-success">相似文章</span>
+        <ul class="list-group">
+        {% for article_name, similarity in sim_articles %}
+          <li class="list-group-item">
+            <a href="{{ url_for('article.article', article_name=article_name) }}">{{article_name}}</a>
+          </li>
+        {% endfor %}
+        </ul>
+      </div>
       <div id="toc">
       </div>
       <button type="button" class="btn btn-info btn-sm" id="back-to-top">
