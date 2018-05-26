@@ -1,4 +1,4 @@
-from flask import render_template, request, current_app
+from flask import render_template, request, current_app, abort
 
 from app.main import main
 # from app.utils.similarity import similarity
@@ -87,3 +87,15 @@ def search():
         article_scores=article_scores[:8],
         archives_anchor=archives_anchor,
     )
+
+
+@main.route('/shutdown')
+def server_shutdown():
+    if not current_app.testing:
+        abort(404)
+    shutdown = request.environ.get('werkzeug.server.shutdown')
+    if not shutdown:
+        abort(500)
+    shutdown()
+    return 'Shutting down...'
+

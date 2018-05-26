@@ -1,30 +1,19 @@
 """ 程序包的构造文件 """
 import os
-from pathlib import Path
-from dotenv import load_dotenv
 
-
-# 导入环境变量
-env_path = Path('.') / '.flaskenv'
-if env_path.is_file():
-    load_dotenv(dotenv_path=env_path, verbose=True)
-
-env_path = Path('.') / '.env'
-if env_path.is_file():
-    load_dotenv(dotenv_path=env_path, verbose=True)
-
-
+import redis
+from celery import Celery
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_pagedown import PageDown
-from celery import Celery
-import redis
 
 from config import config
 
+
+FLASK_ENV = os.getenv('FLASK_ENV') or 'default'
 
 bootstrap = Bootstrap()
 moment = Moment()
@@ -35,13 +24,31 @@ login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 pagedown = PageDown()
 
+celery = Celery(
+    __name__,
+    backend=config[FLASK_ENV].CELERY_RESULT_BACKEND,
+    broker=config[FLASK_ENV].CELERY_BROKER_URL,
+)
 
-def make_celery(app):
-    celery = Celery(
-        app.import_name,
-        backend=app.config['CELERY_RESULT_BACKEND'],
-        broker=app.config['CELERY_BROKER_URL'],
-    )
+redis = redis.StrictRedis(
+    password=config[FLASK_ENV].REDIS_PASSWORD,
+    host=config[FLASK_ENV].REDIS_HOST,
+    port=6379,
+    db=1,
+    decode_responses=True,
+)
+
+
+def update_celery(celery, app):
+
+    backend = app.config['CELERY_RESULT_BACKEND']
+    if backend:
+        celery._Celery__autoset('result_backend', backend)
+
+    broker = app.config['CELERY_BROKER_URL']
+    if broker:
+        celery._Celery__autoset('broker_url', broker)
+
     celery.conf.update(app.config)
 
     class ContextTask(celery.Task):
@@ -50,8 +57,14 @@ def make_celery(app):
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask
-    celery._app = app
-    return celery
+
+
+def update_redis(redis, app):
+    kwargs = {
+        'password': app.config.get('REDIS_PASSWORD'),
+        'host': app.config.get('REDIS_HOST'),
+    }
+    redis.connection_pool.connection_kwargs.update(kwargs)
 
 
 def create_app(config_name):
@@ -66,10 +79,13 @@ def create_app(config_name):
     login_manager.init_app(app)
     pagedown.init_app(app)
 
-    return app
+    # HACK: update celery
+    global celery
+    update_celery(celery, app)
 
-
-def register_blueprint(app):
+    # HACK: update redis
+    global redis
+    update_redis(redis, app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
@@ -91,17 +107,3 @@ def register_blueprint(app):
 
     return app
 
-
-app = create_app(os.getenv('FLASK_ENV', 'default'))
-
-celery = Celery(app)
-
-redis = redis.StrictRedis(
-    password=app.config.get('REDIS_PASSWORD'),
-    host=app.config.get('REDIS_HOST'),
-    port=6379,
-    db=1,
-    decode_responses=True,
-)
-
-app = register_blueprint(app)

@@ -7,12 +7,14 @@ from app.models import Words, Article
 
 def build_query(word_values):
     """ 构造查询字符串
-    假设q为两个单词，单词id分别为10和17
+    假设word_values为一个单词，单词id为10
     则fullquery为：
         select w0.article_id, w0.location
         from wordlocation w0
         where w0.word_id=10
 
+    假设word_values为两个单词，单词id分别为10和17
+    则fullquery为：
         select w0.article_id, w0.location, w1.location
         from wordlocation w0, wordlocation w1
         where w0.word_id=10

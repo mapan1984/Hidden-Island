@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -18,12 +19,13 @@ from itertools import combinations
 from flask.cli import AppGroup
 from flask_migrate import Migrate, upgrade
 
-from app import app, db, redis
+from app import create_app, db, redis
 from app.models import (User, Role, Article, Category, Tag,
                         Comment, Rating, Words, WordLocation)
 from app.utils.similarity import similarity
 
 
+app = create_app(os.getenv('FLASK_ENV', 'default'))
 migrate = Migrate(app, db)
 
 
@@ -71,7 +73,7 @@ def build_index():
 
 @build_cli.command('critics')
 def build_critics():
-    """ Cache all aritcles rattings. """
+    """ Cache all articles rattings. """
     for rating in Rating.query.all():
         username = rating.user.username
         article_name = rating.article.name

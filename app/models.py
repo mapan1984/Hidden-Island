@@ -56,13 +56,13 @@ class Role(db.Model):
         for role_name in roles.keys():
             role = cls.query.filter_by(name=role_name).first()
             if role is None:
-                print('Role: add %s' % role_name)
+                # print('Role: add %s' % role_name)
                 role = cls(name=role_name)
             role.permissions = roles[role_name][0]
             role.default = roles[role_name][1]
             db.session.add(role)
         db.session.commit()
-        print('Insert roles is done.')
+        # print('Insert roles is done.')
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -419,7 +419,7 @@ class Article(db.Model):
         self._build_index()
 
     def _cache_similar(self):
-        print(f"Cache {self.name}")
+        print(f"Cache: {self.name}")
         for other in Article.query.all():
             if self == other:
                 continue
@@ -428,11 +428,12 @@ class Article(db.Model):
             redis.zadd(other.name, similar, other.name)
 
     def _delete_cache(self):
+        print(f"Delete Cache: {self.name}")
         redis.delete(self.name)
         for other in Article.query.all():
             if self == other:
                 continue
-            redis.zdelete(other.name, self.name)
+            redis.zrem(other.name, self.name)
 
     def add_tags(self, tag_names):
         """增加文章的tags
@@ -516,7 +517,7 @@ class Article(db.Model):
         if body is None or body == '':
             raise ValidationError('Article does not have body')
         category = json_article.get('category', '未分类')
-        tags = json_article.get('tags', '无标签')
+        tags = json_article.get('tags', ['无标签'])
         # TODO: 如果文章title(name)重复应进行提示
         article = Article(
             title=title,
@@ -708,8 +709,10 @@ class Comment(db.Model):
 
     def to_json(self):
         comments = {
+            'url': url_for('api.get_comment', id=self.id, _external=True),
             'id': self.id,
             'body': self.body,
+            'body_html': self.body_html,
             'author': self.author.username,
             'timestamp': self.timestamp.strftime('%Y %m %d'),
             'author_id': self.author_id,

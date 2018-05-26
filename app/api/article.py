@@ -8,7 +8,7 @@ from app.api.decorators import permission_required
 from app.api.errors import forbidden, ValidationError
 
 
-@api.route('/article/<int:id>')
+@api.route('/articles/<int:id>')
 def get_article(id):
     article = Article.query.get_or_404(id)
     return jsonify(article.to_json())
@@ -16,13 +16,27 @@ def get_article(id):
 
 @api.route('/articles/')
 def get_articles():
-    articles = Article.query.all()
+    page = request.args.get('page', 1, type=int)
+    pagination = Article.query.paginate(
+        page, per_page=current_app.config['ARTICLES_PAGINATE'],
+        error_out=False
+    )
+    articles = pagination.items
+    prev = None
+    if pagination.has_prev:
+        prev = url_for('api.get_articles', page=page - 1)
+    next = None
+    if pagination.has_next:
+        next = url_for('api.get_articles', page=page + 1)
     return jsonify({
-        'articles': [article.to_json() for article in articles]
+        'articles': [article.to_json() for article in articles],
+        'prev': prev,
+        'next': next,
+        'count': pagination.total
     })
 
 
-@api.route('/article/', methods=['POST'])
+@api.route('/articles/', methods=['POST'])
 @permission_required(Permission.WRITE_ARTICLES)
 def new_article():
     try:
@@ -32,10 +46,14 @@ def new_article():
         current_app.logger.warning(str(exp))
         return (
             jsonify({'error': str(exp)}),
+            412,
         )
     article.author = g.current_user
     db.session.add(article)
     db.session.commit()
+    # XXX: 建立文章索引应在后台进行
+    # article._build_index()
+    # article._cache_similar()
     return (
         # 201 - 已创建
         jsonify(article.to_json()),
@@ -54,6 +72,7 @@ def sync_article():
         current_app.logger.warning(str(exp))
         return (
             jsonify({'error': str(exp)}),
+            412,
         )
     # 标题冲突，409 - 冲突
     if not article:
@@ -75,7 +94,7 @@ def sync_article():
     )
 
 
-@api.route('/article/<int:article_id>', methods=['PUT'])
+@api.route('/articles/<int:article_id>', methods=['PUT'])
 @permission_required(Permission.WRITE_ARTICLES)
 def edit_article(article_id):
     article = Article.query.get_or_404(article_id)
@@ -84,4 +103,7 @@ def edit_article(article_id):
         return forbidden('Insufficient permissions')
     article.body = request.json.get('body', article.body)
     db.session.add(article)
+    # XXX: 建立文章索引应在后台进行
+    # article._build_index()
+    # article._cache_similar()
     return jsonify(article.to_json())

@@ -21,13 +21,14 @@ auth = HTTPBasicAuth()
 def verify_password_or_token(email_or_token, password):
     """用户验证的回调函数，保存用户到g.current_user
     Returns:
-        匿名用户或token/password验证成功返回True
-        token/hassword验证失败返回False
+        token/password验证成功返回True
+        匿名用户或token/hassword验证失败返回False
     """
     if email_or_token == '':  # 匿名用户
         g.current_user = AnonymousUser()
         g.token_used = False
-        return True
+        # return True
+        return False
     if password == '':  # 使用token验证
         g.current_user = User.verify_auth_token(email_or_token)
         g.token_used = True
