@@ -9,7 +9,7 @@ from app.api.decorators import permission_required
 def get_comments():
     page = request.args.get('page', 1, type=int)
     pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
-        page, per_page=current_app.config['FLASKY_COMMENTS_PER_PAGE'],
+        page, per_page=current_app.config['COMMENTS_PAGINATE'],
         error_out=False)
     comments = pagination.items
     prev = None
@@ -64,6 +64,8 @@ def new_article_comment(id):
     comment = Comment.from_json(request.json)
     db.session.add(comment)
     db.session.commit()
-    return jsonify(comment.to_json()), 201, \
+    return (
+        jsonify(comment.to_json()),
+        201,
         {'Location': url_for('api.get_comment', id=comment.id)}
-
+    )

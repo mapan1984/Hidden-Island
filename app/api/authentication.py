@@ -5,8 +5,11 @@
 3. 使用token进行验证：请求为`Authorization: Basic ${token}:${}`，即username字段代表token，密码字段为空
 认证信息需使用base64进行编码
 """
-from flask import g, jsonify
-from flask_httpauth import HTTPBasicAuth
+from functools import wraps
+
+from flask import g, jsonify, request
+
+from flask_login import current_user
 
 from app.models import User, AnonymousUser
 
@@ -14,10 +17,32 @@ from app.api import api
 from app.api.errors import unauthorized, forbidden
 
 
-auth = HTTPBasicAuth()
+def auth_required(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        if request.authorization:
+            email_or_token = request.authorization.username
+            password = request.authorization.password
+            if verify_password_or_token(email_or_token, password):
+                return f(*args, **kwargs)
+
+        if current_user.is_authenticated:
+            g.current_user = current_user
+            g.token_used = False
+            return f(*args, **kwargs)
+
+        if current_user.is_anonymous:
+            g.current_user = AnonymousUser()
+            g.token_used = False
+
+        return (
+            unauthorized('Invalid credentials'),
+            401,
+            {'WWW-Authenticate': 'Basic realm="Login Required"'}
+        )
+    return decorator
 
 
-@auth.verify_password
 def verify_password_or_token(email_or_token, password):
     """用户验证的回调函数，保存用户到g.current_user
     Returns:
@@ -40,13 +65,8 @@ def verify_password_or_token(email_or_token, password):
     return user is not None and user.verify_password(password)
 
 
-@auth.error_handler
-def auth_error():
-    return unauthorized('Invalid credentials')
-
-
 @api.before_request
-@auth.login_required
+@auth_required
 def before_request():
     """对于api蓝本中所有路由，拒绝未认证或未确认账户的用户"""
     if not g.current_user.is_anonymous \

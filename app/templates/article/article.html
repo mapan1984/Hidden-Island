@@ -1,7 +1,9 @@
 {% extends "_layouts/default.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}{% endblock %}
+{% block title %}
+{{ article.title }}
+{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -42,7 +44,11 @@
 
     <div class="blog-rating" data-user-id={{user_id}} data-article-id={{article_id}} data-avg-rating={{avg_rating}} data-current-rating={{current_user_rating}}>
       <div class="avg">
-      <p><span id="avg-rating"></span>({{ num_rating }}人已评分，平均{{ avg_rating }}分)</p>
+        {% if num_rating %}
+          <p><span id="avg-rating"></span>({{ num_rating }}人已评分，平均{{ "%f" % avg_rating }}分)</p>
+        {% else %}
+          <p>无人评分</p>
+        {% endif %}
       </div>
       <div style="display: inline-block;">
       {% if current_user.is_authenticated %}
@@ -100,8 +106,8 @@
       {% endfor %}
       </ul>
     </div>
-
   </div>
+
   <div class="col-sm-3 col-sm-offset-1">
     <div class="blog-post-tip">
       <div id="similarity">
@@ -114,8 +120,9 @@
         {% endfor %}
         </ul>
       </div>
-      <div id="toc">
-      </div>
+
+      <div id="toc"></div>
+
       <button type="button" class="btn btn-info btn-sm" id="back-to-top">
         <span clas="glyphicon glyphicon-hand-up" aria-hidden="true"></span> 回到顶部
       </button>

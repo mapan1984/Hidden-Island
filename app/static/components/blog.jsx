@@ -5,7 +5,7 @@ import CommentBox from './comments.jsx'
 let _commentBox = document.getElementById('comment-box')
 let userId = _commentBox.dataset.userId
 let articleId = _commentBox.dataset.articleId
-let url = `/api/article/${articleId}/comments`
+let url = `/api/articles/${articleId}/comments/`
 
 ReactDOM.render(
     <CommentBox

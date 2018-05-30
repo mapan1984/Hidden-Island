@@ -13,7 +13,12 @@ import './comments.css'
 class CommentBox extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {data: []}
+        this.state = {
+            comments: [],
+            prev: null,
+            next: null,
+            count: 0,
+        }
     }
     loadCommentsFromServer = () => {
         $.ajax({
@@ -21,7 +26,7 @@ class CommentBox extends React.Component {
             dataType: 'json',
             cache: false,
             success: (data) => {
-                this.setState({data: data})
+                this.setState(data)
             },
             error: (xhr, status, err) => {
                 console.error(this.props.url, status, err.toString())
@@ -29,26 +34,23 @@ class CommentBox extends React.Component {
         })
     }
     handleCommentSubmit = (comment) => {
-        let comments = this.state.data
-
-        // submit to the server and refresh the list
+        // submit comment to the server and refresh the list
         $.ajax({
-            url: this.props.url,
-            dateType: 'json',
             type: 'POST',
+            url: this.props.url,
             data: comment,
+            contentType: 'application/json;charset=UTF-8',
             success: (data) => {
-                this.setState({data: data})
+                // FIXME: 分页错误?
+                let newState = this.state
+                newState.comments.push(data)
+                this.setState(newState)
             },
             error: (xhr, status, err) => {
-                this.setState({data: comments})
                 console.error(this.props.url, status, err.toString())
             }
         })
 
-        // comment.id = Date.now()
-        let newComments = comments.concat([comment])
-        this.setState({data: newComments})
     }
     componentDidMount() {
         this.loadCommentsFromServer()
@@ -62,7 +64,7 @@ class CommentBox extends React.Component {
                 userId={this.props.userId}
                 articleId={this.props.articleId}
               />
-              <CommentList data={this.state.data} />
+              <CommentList data={this.state} />
             </div>
         )
     }
@@ -74,7 +76,7 @@ class CommentList extends React.Component {
     }
 
     render() {
-        let commentNodes = this.props.data.map(
+        let commentNodes = this.props.data.comments.map(
             (comment, index) => (
                 <Comment author={comment.author} timestamp={comment.timestamp} key={comment.id}>
                   {comment.body}
@@ -133,11 +135,11 @@ class CommentForm extends React.Component {
         }
 
         // send request to the server
-        this.props.onCommentSubmit({
+        this.props.onCommentSubmit(JSON.stringify({
             author_id: authorId,
             article_id: articleId,
             body: body
-        })
+        }), null, '\t')
 
         this.setState({body: ''})
     }
