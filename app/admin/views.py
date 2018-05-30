@@ -10,6 +10,7 @@ from app.models import Article, User, Role
 from app.decorators import admin_required
 from app.admin import admin
 from app.admin.forms import EditProfileAdminForm
+from app.email import send_email
 from app.tasks import add_together
 
 
@@ -135,4 +136,11 @@ def test_redis():
     redis.set('test_redis', 'hello')
     flash(redis.get('test_redis'))
     redis.delete('test_redis')
+    return redirect(url_for('admin.index'))
+
+
+@admin.route('/test-email')
+def test_email():
+    send_email(current_user.email, 'Test email', 'mail/test')
+    flash('一封测试邮件已经发送到您的邮箱')
     return redirect(url_for('admin.index'))

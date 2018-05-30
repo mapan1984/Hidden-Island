@@ -14,7 +14,7 @@ from itsdangerous import BadSignature, SignatureExpired
 from flask import current_app, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 
-from app import db, redis, login_manager
+from app import db, redis, login_manager, logger
 from config import Config
 from app.utils.markdown import MD
 from app.utils.similarity import similarity
@@ -56,13 +56,13 @@ class Role(db.Model):
         for role_name in roles.keys():
             role = cls.query.filter_by(name=role_name).first()
             if role is None:
-                # print('Role: add %s' % role_name)
+                logger.info('Role: add %s' % role_name)
                 role = cls(name=role_name)
             role.permissions = roles[role_name][0]
             role.default = roles[role_name][1]
             db.session.add(role)
         db.session.commit()
-        # print('Insert roles is done.')
+        logger.info('Insert roles is done.')
 
     def __repr__(self):
         return '<Role %r>' % self.name
@@ -114,15 +114,15 @@ class User(UserMixin, db.Model):
     def add_admin(cls):
         email = os.environ.get('ADMIN_EMAIL')
         if email is None:
-            print('ADMIN_EMAIL not find in os.environ')
+            logger.error('ADMIN_EMAIL not find in os.environ')
             return
 
         admin = cls.query.filter_by(email=email).first()
         if admin is None:
-            print('User: add admin')
+            logger.info('User: add admin')
             password = os.environ.get('ADMIN_PASSWORD')
             if password is None:
-                print('ADMIN_PASSWORD not find in os.environ')
+                logger.error('ADMIN_PASSWORD not find in os.environ')
                 return
             admin = cls(
                 username='mapan1984',
@@ -132,9 +132,9 @@ class User(UserMixin, db.Model):
             )
             db.session.add(admin)
             db.session.commit()
-            print('Add admin is done.')
+            logger.info('Add admin is done.')
         else:
-            print('Admin already exists.')
+            logger.info('Admin already exists.')
 
     def ping(self):
         """刷新用户的最后访问时间"""
@@ -282,11 +282,11 @@ class Category(db.Model):
         for category_name in category_names:
             category = cls.query.filter_by(name=category_name).first()
             if category is None:
-                print('Category: add %s' % category_name)
+                logger.info('Category: add %s' % category_name)
                 category = cls(name=category_name)
             db.session.add(category)
         db.session.commit()
-        print('Insert categores is done.')
+        logger.info('Insert categores is done.')
 
     @classmethod
     def clear(cls):
@@ -392,7 +392,7 @@ class Article(db.Model):
         """为文章建立索引"""
         if self._is_indexed():
             return
-        print('Indexing %s' % self.title)
+        logger.info('Indexing %s' % self.title)
 
         for loc, word_value in enumerate(self.words):
             if Words._should_ignore(word_value):
@@ -419,7 +419,7 @@ class Article(db.Model):
         self._build_index()
 
     def _cache_similar(self):
-        print(f"Cache: {self.name}")
+        logger.info(f"Cache: {self.name}")
         for other in Article.query.all():
             if self == other:
                 continue
@@ -428,7 +428,7 @@ class Article(db.Model):
             redis.zadd(other.name, similar, other.name)
 
     def _delete_cache(self):
-        print(f"Delete Cache: {self.name}")
+        logger.info(f"Delete Cache: {self.name}")
         redis.delete(self.name)
         for other in Article.query.all():
             if self == other:
@@ -705,7 +705,7 @@ class Comment(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
 
-    __mapper_args__ = {"order_by": desc(timestamp)}
+    # __mapper_args__ = {"order_by": desc(timestamp)}
 
     def to_json(self):
         comments = {

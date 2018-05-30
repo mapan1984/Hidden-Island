@@ -1,9 +1,10 @@
 import os
 import logging
-import urllib
 
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail, Content
+
+from app.email import send
 
 
 class SendGridMailHandler(logging.Handler):
@@ -23,13 +24,7 @@ class SendGridMailHandler(logging.Handler):
         # record.message is the log message
         content = Content('text/plain', self.format(record))
         mail = Mail(self.sender, self.subject, self.recipient, content)
-
-        try:
-            response = self.sg.client.mail.send.post(request_body=mail.get())
-            if response.status_code < 300:
-                print("Email processed", response.body, response.status_code)
-        except urllib.error.HTTPError as e:
-            e.read()
+        send(mail)
 
 
 if __name__ == '__main__':

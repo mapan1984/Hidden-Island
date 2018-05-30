@@ -8,6 +8,8 @@ Date example: see linux command `date +"%Y-%m-%d %H:%M:%S %z"`
 
 from datetime import date, datetime
 
+from app import logger
+
 
 def todate(article_date):
     """
@@ -25,8 +27,8 @@ def todate(article_date):
         year, month, day, *_ = article_date.split('-')
         res_date = date(int(year), int(month), int(day))
     except (TypeError, KeyError, ValueError) as exc:
-        print("Date Convert Error: %s" % str(exc))
-        print("Error Date: %s" % article_date)
+        logger.warning("Date Convert Error: %s" % str(exc))
+        logger.warning("Error Date: %s" % article_date)
         return date.today()
     else:
         return res_date
@@ -58,8 +60,8 @@ def todatetime(article_datetime):
             res_datetime = datetime(int(year), int(month), int(day),
                                     int(hour), int(minute), int(second))
     except (TypeError, KeyError, ValueError) as exc:
-        print("Datetime Convert Error: %s" % str(exc))
-        print("Error Datetime: %s" % article_datetime)
+        logger.warning("Datetime Convert Error: %s" % str(exc))
+        logger.warning("Error Datetime: %s" % article_datetime)
         return datetime.utcnow()
     else:
         return res_datetime

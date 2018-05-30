@@ -7,6 +7,8 @@ from sendgrid.helpers.mail import Email, Mail, Content
 
 from flask import current_app, render_template
 
+from app import logger
+
 
 sg = SendGridAPIClient(apikey=os.getenv("SENDGRID_API_KEY"))
 
@@ -23,11 +25,17 @@ def send(email):
     try:
         response = sg.client.mail.send.post(request_body=email.get())
         if response.status_code < 300:
-            print("Email processed", response.body, response.status_code)
+            logger.info(
+                f"Email processed, status code: {response.status_code}"
+            )
         else:
-            print("Email processed Faild!")
-    except urllib.error.HTTPError as e:
-        e.read()
+            logger.error(
+                f"Email processed, status code: {response.status_code}"
+            )
+    except urllib.error.HTTPError as error:
+        logger.error(
+            f"Email process failed, Error: {error}"
+        )
 
 
 def send_email(to, subject, template, **kwargs):
@@ -53,6 +61,6 @@ def send_email(to, subject, template, **kwargs):
     thr = threading.Thread(target=send, args=(mail,))
     thr.start()
 
-    print('email from {} to {} sending...'.format(from_email, to_email))
+    logger.info('sending email from {} to {}...'.format(from_email.email, to_email.email))
 
     return thr

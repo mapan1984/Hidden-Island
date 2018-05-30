@@ -1,5 +1,6 @@
 """ 程序包的构造文件 """
 import os
+import logging
 
 import redis
 from celery import Celery
@@ -107,3 +108,6 @@ def create_app(config_name):
 
     return app
 
+
+# HACK: get the flask app logger
+logger = logging.getLogger('flask.app')
