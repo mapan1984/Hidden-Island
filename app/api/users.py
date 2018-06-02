@@ -15,7 +15,7 @@ def get_user_articles(id):
     user = User.query.get_or_404(id)
     page = request.args.get('page', 1, type=int)
     pagination = user.articles.order_by(Article.timestamp.desc()).paginate(
-        page, per_page=current_app.config['ARTICLES_PAGINATE'],
+        page, per_page=current_app.config['ARTICLES_PER_PAGE'],
         error_out=False
     )
     articles = pagination.items
@@ -31,4 +31,3 @@ def get_user_articles(id):
         'next': next,
         'count': pagination.total
     })
-

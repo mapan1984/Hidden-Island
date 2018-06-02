@@ -18,7 +18,7 @@ def get_article(id):
 def get_articles():
     page = request.args.get('page', 1, type=int)
     pagination = Article.query.paginate(
-        page, per_page=current_app.config['ARTICLES_PAGINATE'],
+        page, per_page=current_app.config['ARTICLES_PER_PAGE'],
         error_out=False
     )
     articles = pagination.items

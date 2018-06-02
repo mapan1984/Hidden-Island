@@ -9,7 +9,7 @@ from app.api.decorators import permission_required
 def get_comments():
     page = request.args.get('page', 1, type=int)
     pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
-        page, per_page=current_app.config['COMMENTS_PAGINATE'],
+        page, per_page=current_app.config['COMMENTS_PER_PAGE'],
         error_out=False)
     comments = pagination.items
     prev = None
@@ -37,7 +37,7 @@ def get_article_comments(id):
     article = Article.query.get_or_404(id)
     page = request.args.get('page', 1, type=int)
     pagination = article.comments.order_by(Comment.timestamp.asc()).paginate(
-        page, per_page=current_app.config['COMMENTS_PAGINATE'],
+        page, per_page=current_app.config['COMMENTS_PER_PAGE'],
         error_out=False
     )
     comments = pagination.items

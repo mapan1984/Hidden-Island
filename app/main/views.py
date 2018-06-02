@@ -17,7 +17,7 @@ def index():
     page = request.args.get('page', 1, type=int)
     pagination = Article.query.paginate(
         page,
-        per_page=current_app.config['ARTICLES_PAGINATE'],
+        per_page=current_app.config['ARTICLES_PER_PAGE'],
         error_out=False
     )
 
@@ -98,4 +98,3 @@ def server_shutdown():
         abort(500)
     shutdown()
     return 'Shutting down...'
-

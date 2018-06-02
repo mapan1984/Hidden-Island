@@ -22,21 +22,16 @@ class Config:
     MAIL_SENDER = os.environ.get('MAIL_SENDER')
     SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 
-    # 文章目录
     ARTICLES_SOURCE_DIR = os.path.join(BASE_DIR, 'articles')
-    # 每页文章数
-    ARTICLES_PAGINATE = 7
-    # 每页评论数
-    COMMENTS_PAGINATE = 7
-    # 上传文件大小限制
-    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
-    # 允许上传的文件后缀
-    ALLOWED_EXTENSIONS = set(['md', 'markdown'])
+    ARTICLES_PER_PAGE = 7
+    COMMENTS_PER_PAGE = 7
+    MAX_ARTICLE_SIZE = 16 * 1024 * 1024
+    ALLOWED_FILE_EXTENSIONS = set(['md', 'markdown'])
 
     @classmethod
     def allowed_file(cls, filename):
         return '.' in filename \
-               and filename.rsplit('.', 1)[1] in cls.ALLOWED_EXTENSIONS
+               and filename.rsplit('.', 1)[1] in cls.ALLOWED_FILE_EXTENSIONS
 
     @staticmethod
     def init_app(app):
