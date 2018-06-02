@@ -5,7 +5,7 @@ import threading
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Email, Mail, Content
 
-from flask import current_app, render_template
+from flask import current_app
 
 from app import logger
 
@@ -38,29 +38,28 @@ def send(email):
         )
 
 
-def send_email(to, subject, template, **kwargs):
-    """异步发送邮件
+def send_email(recipient, subject, message, sender=None, async_=True, type_="text/html"):
+    """发送邮件
 
     Args:
-        to <string>: 收件者地址
+        recipient <string>: 收件者地址
         subject <string>: 邮件主题
-        template <string>: 邮件模板路径
-        kwargs: 模板填充键值对
-
-    Returns:
-        thr: 发送邮件的线程句柄
+        message <string>: 邮件内容
+        sender <string>: 发件人地址
+        async_ <bool>: 是否异步发送
+        type_  <string>: 邮件内容类型
     """
     app = current_app._get_current_object()
-    to_email = Email(to)
-    from_email = Email(app.config['MAIL_SENDER'])
+
+    sender = Email(sender) if sender else Email(app.config['MAIL_SENDER'])
+    recipient = Email(recipient)
     subject = app.config['MAIL_SUBJECT_PREFIX'] + ' ' + subject
-    content = Content("text/html", render_template(template + '.html', **kwargs))
+    content = Content(type_, message)
+    mail = Mail(sender, subject, recipient, content)
 
-    mail = Mail(from_email, subject, to_email, content)
-
-    thr = threading.Thread(target=send, args=(mail,))
-    thr.start()
-
-    logger.info('sending email from {} to {}...'.format(from_email.email, to_email.email))
-
-    return thr
+    logger.info(f'sending email from {sender.email} to {recipient.email}...')
+    if async_:
+        thr = threading.Thread(target=send, args=(mail,))
+        thr.start()
+    else:
+        send(mail)

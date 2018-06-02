@@ -1,30 +1,21 @@
-import os
 import logging
 
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Email, Mail, Content
-
-from app.email import send
+from app.email import send_email
 
 
 class SendGridMailHandler(logging.Handler):
     """自定义logging handler，利用SendGrid发送log邮件
     """
-    def __init__(self, *, api_key, sender, recipient, subject):
+    def __init__(self, *, recipient, subject):
         # run the regular Handler __init__
         logging.Handler.__init__(self)
 
-        self.sg = SendGridAPIClient(apikey=api_key)
-
-        self.sender = Email(sender)
-        self.recipient = Email(recipient)
+        self.recipient = recipient
         self.subject = subject
 
     def emit(self, record):
         # record.message is the log message
-        content = Content('text/plain', self.format(record))
-        mail = Mail(self.sender, self.subject, self.recipient, content)
-        send(mail)
+        send_email(self.recipient, self.subject, self.format(record), type_='text/plain')
 
 
 if __name__ == '__main__':
@@ -32,8 +23,6 @@ if __name__ == '__main__':
 
     # Setup logging handler
     mail_handler = SendGridMailHandler(
-        api_key=os.getenv("SENDGRID_API_KEY"),
-        sender='mapan1024@gmail.com',
         recipient='mapan1984@outlook.com',
         subject='Application error!'
     )

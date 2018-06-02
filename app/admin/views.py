@@ -132,6 +132,7 @@ def test_task():
 
 
 @admin.route('/test-redis')
+@admin_required
 def test_redis():
     redis.set('test_redis', 'hello')
     flash(redis.get('test_redis'))
@@ -140,7 +141,8 @@ def test_redis():
 
 
 @admin.route('/test-email')
+@admin_required
 def test_email():
-    send_email(current_user.email, 'Test email', 'mail/test')
+    send_email(current_user.email, 'Test email', 'test email server', type_='text/plain')
     flash('一封测试邮件已经发送到您的邮箱')
     return redirect(url_for('admin.index'))

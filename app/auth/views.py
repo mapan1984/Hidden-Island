@@ -59,8 +59,12 @@ def register():
         db.session.add(user)
         db.session.commit()  # 提交数据库后才可赋予新用户id值，不能延后提交
         token = user.generate_confirmation_token()
-        send_email(user.email, 'Confirm Your Account',
-                   'auth/email/confirm', user=user, token=token)
+        message = render_template(
+            'auth/email/confirm.html',
+            user=user,
+            token=token
+        )
+        send_email(user.email, 'Confirm Your Account', message)
         flash('一封确认邮件已经发送到您的邮箱')
         return redirect(request.args.get('next') or url_for('auth.login'))
     return render_template('auth/register.html', form=form)
@@ -77,8 +81,8 @@ def unconfirmed():
 @login_required
 def confirm_request():
     token = current_user.generate_confirmation_token()
-    send_email(current_user.email, 'Confirm Your Account',
-               'auth/email/confirm', user=current_user, token=token)
+    message = render_template('auth/email/confirm.html', user=current_user, token=token)
+    send_email(current_user.email, 'Confirm Your Account', message)
     flash('一封确认邮件已经发送到您的邮箱')
     return redirect(url_for(request.args.get('next') or 'main.index'))
 
@@ -119,11 +123,16 @@ def reset_password_request():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
             token = user.generate_reset_password_token()
-            send_email(user.email, 'Reset Your Password',
-                       'auth/email/reset_password',
-                       user=user, token=token,
-                       next=request.args.get('next'))
-        flash('已发送一封包含重置密码说明的电子邮件到您的邮箱')
+            message = render_template(
+                'auth/email/reset_password.html',
+                user=user,
+                token=token,
+                next=request.args.get('next')
+            )
+            send_email(user.email, 'Reset Your Password', message)
+            flash('已发送一封包含重置密码说明的电子邮件到您的邮箱')
+        else:
+            flash('您填写的邮件不存在')
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
 
@@ -155,9 +164,12 @@ def change_email_request():
         if current_user.verify_password(form.password.data):
             new_email = form.email.data
             token = current_user.generate_change_email_token(new_email)
-            send_email(new_email, 'Confirm your email address',
-                       'auth/email/change_email',
-                       user=current_user, token=token)
+            message = render_template(
+                'auth/email/change_email',
+                user=current_user,
+                token=token
+            )
+            send_email(new_email, 'Confirm your email address', message)
             flash('已发送一封包含确认您新邮件地址说明的电子邮件到您的邮箱')
             return redirect(url_for('main.index'))
         else:

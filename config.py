@@ -68,8 +68,6 @@ class ProductionConfig(Config):
         import logging
         from app.utils.log_handler import SendGridMailHandler
         mail_handler = SendGridMailHandler(
-            api_key=os.getenv("SENDGRID_API_KEY"),
-            sender=cls.MAIL_SENDER,
             recipient=cls.ADMIN_EMAIL,
             subject=cls.MAIL_SUBJECT_PREFIX + 'Application error!'
         )
