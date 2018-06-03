@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements/docker.txt
 COPY app app
 COPY migrations migrations
 COPY articles articles
-COPY manage.py config.py boot.sh .env .flaskenv ./
+COPY manage.py config.py celery_worker.py boot.sh .env .flaskenv ./
 RUN chmod +x boot.sh
 
 USER flasky

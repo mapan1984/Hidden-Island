@@ -335,11 +335,13 @@ class Article(db.Model):
     __tablename__ = 'articles'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
     title = db.Column(db.String(64), unique=True)  # 标题
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     body = db.Column(db.Text)
     body_html = db.Column(db.Text)
+
+    # For markdown file
+    name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
     md5 = db.Column(db.String(32))
 
     # Relationship
@@ -392,7 +394,7 @@ class Article(db.Model):
         """为文章建立索引"""
         if self._is_indexed():
             return
-        logger.info('Indexing %s' % self.title)
+        logger.info(f'Indexing {self.title}...')
 
         for loc, word_value in enumerate(self.words):
             if Words._should_ignore(word_value):
@@ -406,7 +408,7 @@ class Article(db.Model):
             db.session.add(wordlocation)
             db.session.commit()
 
-    def _del_index(self):
+    def _delete_index(self):
         """删除文章索引"""
         if self.wordlocations:
             for wordlocation in self.wordlocations:
@@ -415,20 +417,20 @@ class Article(db.Model):
 
     def _rebuild_index(self):
         """重新为文章建立索引"""
-        self._del_index()
+        self._delete_index()
         self._build_index()
 
     def _cache_similar(self):
-        logger.info(f"Cache: {self.name}")
+        logger.info(f"Cache: {self.title}")
         for other in Article.query.all():
             if self == other:
                 continue
-            similar = similarity(self.content, other.content)
-            redis.zadd(self.name, similar, other.name)
-            redis.zadd(other.name, similar, other.name)
+            sim = similarity(self.content, other.content)
+            redis.zadd(self.name, sim, other.name)
+            redis.zadd(other.name, sim, other.name)
 
     def _delete_cache(self):
-        logger.info(f"Delete Cache: {self.name}")
+        logger.info(f"Delete Cache: {self.title}")
         redis.delete(self.name)
         for other in Article.query.all():
             if self == other:
@@ -454,8 +456,8 @@ class Article(db.Model):
             if tag.articles is None:
                 db.session.delete(tag)
 
-    def change_category(self, category):
-        """改变文章的category(如果之前不存在category则增加)
+    def set_category(self, category):
+        """设置文章的category(如果之前不存在category则增加)
         Args:
             category: category的名称或id
         """
@@ -471,8 +473,7 @@ class Article(db.Model):
     def delete(self):
         """删除存在的文章记录"""
         self.delete_tags()
-        # XXX: 后台执行
-        self._del_index()
+        self._delete_index()
         self._delete_cache()
         db.session.delete(self)
         return "[article] %s is deleted" % self.title
@@ -524,7 +525,7 @@ class Article(db.Model):
             name=title,
             body=body,
         )
-        article.change_category(category)
+        article.set_category(category)
         article.add_tags(tags)
         return article
 
@@ -556,7 +557,8 @@ class Article(db.Model):
         tag_names = MD.Meta.get('tags', ['无标签'])
 
         try:
-            article.change_category(category_name)
+            # XXX: 查清标题冲突发生在那一步
+            article.set_category(category_name)
             article.add_tags(tag_names)
             db.session.add(article)
             db.session.commit()
@@ -567,7 +569,7 @@ class Article(db.Model):
             return article
 
     def __repr__(self):
-        return '<Article %r>' % self.name
+        return '<Article %r>' % self.title
 
     # The following function are ready for the markdwon file
     @property
@@ -609,7 +611,7 @@ class Article(db.Model):
         tag_names = MD.Meta.get('tags', ['无标签'])
 
         try:
-            self.change_category(category_name)
+            self.set_category(category_name)
             self.delete_tags()
             self.add_tags(tag_names)
             db.session.add(self)
@@ -633,9 +635,8 @@ class Article(db.Model):
         else:
             if not article:
                 return "Message: may be %s exsited." % name
-            # XXX: 后台执行
-            article._build_index()
-            article._cache_similar()
+            from app.tasks import build_index
+            build_index.delay(article.id)
             return "[article] %s is added." % name
 
     @staticmethod
@@ -652,9 +653,8 @@ class Article(db.Model):
     def md_refresh(self):
         """更新存在的由markdown文件生成的article的记录"""
         self.md_relog()
-        # XXX: 后台执行
-        self._rebuild_index()
-        self._cache_similar()
+        from app.tasks import rebuild_index
+        rebuild_index.delay(self.id)
         return "[article] %s is refreshed" % self.title
 
     @classmethod

@@ -1,9 +1,10 @@
 from flask_wtf import FlaskForm
+from wtforms import ValidationError
 from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import Required, Length
 from flask_pagedown.fields import PageDownField
 
-from app.models import Category
+from app.models import Category, Article
 
 
 class EditArticleForm(FlaskForm):
@@ -15,5 +16,13 @@ class EditArticleForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(EditArticleForm, self).__init__(*args, **kwargs)
-        self.category.choices = [(category.id, category.name)
-                 for category in Category.query.order_by(Category.name).all()]
+        self.category.choices = [
+            (category.id, category.name)
+            for category in Category.query.order_by(Category.name).all()
+        ]
+
+    def validate_title(self, field):
+        if (Article.query.filter_by(name=field.data).first()
+                or Article.query.filter_by(title=field.data).first()):
+            raise ValidationError('文章标题已被使用')
+

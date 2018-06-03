@@ -33,6 +33,15 @@ services:
       - redis
       - postgres
 
+  celery:
+    build: .
+    restart: always
+    env_file: .env
+    command: celery worker -A celery_worker.celery --loglevel=info
+    depends_on:
+      - redis
+      - web
+
   nginx:
     restart: always
     build: ./nginx

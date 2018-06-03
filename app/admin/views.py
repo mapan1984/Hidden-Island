@@ -1,7 +1,7 @@
 import os
 
 from flask import (request, redirect, url_for, render_template,
-                   flash, current_app)
+                   flash, current_app, jsonify, session)
 from flask_login import current_user
 
 from app import db, redis
@@ -11,7 +11,7 @@ from app.decorators import admin_required
 from app.admin import admin
 from app.admin.forms import EditProfileAdminForm
 from app.email import send_email
-from app.tasks import add_together
+from app.tasks import add_together, long_task
 
 
 @admin.route('/')
@@ -36,8 +36,9 @@ def upload():
     if file and Config.allowed_file(file.filename):
         filename = file.filename
         # 保存md文件
-        file.save(os.path.join(current_app.config['ARTICLES_SOURCE_DIR'],
-                               filename))
+        file.save(
+            os.path.join(current_app.config['ARTICLES_SOURCE_DIR'], filename)
+        )
         # 生成html与数据库记录
         Article.md_render(name=filename.rsplit('.')[0])
 
@@ -123,14 +124,6 @@ def test_error():
     raise Exception("Beds are burning!")
 
 
-@admin.route('/test-task')
-@admin_required
-def test_task():
-    add_together.delay(1, 2)
-    flash('test task')
-    return redirect(url_for('admin.index'))
-
-
 @admin.route('/test-redis')
 @admin_required
 def test_redis():
@@ -146,3 +139,73 @@ def test_email():
     send_email(current_user.email, 'Test email', 'test email server', type_='text/plain')
     flash('一封测试邮件已经发送到您的邮箱')
     return redirect(url_for('admin.index'))
+
+
+@admin.route('/test-task')
+@admin_required
+def test_task():
+    result = add_together.delay(1, 2)
+    flash(f'test task {result.wait()}')
+    return redirect(url_for('admin.index'))
+
+
+@admin.route('/test-tasks', methods=['GET', 'POST'])
+@admin_required
+def test_tasks():
+    if request.method == 'GET':
+        return render_template('admin/test-tasks.html', email=session.get('email', ''))
+
+    email = request.form['email']
+    session['email'] = email
+
+    if request.form['submit'] == 'Send':
+        # send right away
+        flash('Sending email to {0}'.format(email))
+    else:
+        # send in one minute
+        flash('An email will be sent to {0} in one minute'.format(email))
+
+    return redirect(url_for('admin.test_tasks'))
+
+
+@admin.route('/test-tasks/longtask', methods=['POST'])
+@admin_required
+def test_longtask():
+    task = long_task.apply_async()
+    return (
+        jsonify({}),
+        202,
+        {'Location': url_for('admin.test_taskstatus', task_id=task.id)}
+    )
+
+
+@admin.route('/test-tasks/status/<task_id>')
+@admin_required
+def test_taskstatus(task_id):
+    task = long_task.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        # job did not start yet
+        response = {
+            'state': task.state,
+            'current': 0,
+            'total': 1,
+            'status': 'Pending...'
+        }
+    elif task.state != 'FAILURE':
+        response = {
+            'state': task.state,
+            'current': task.info.get('current', 0),
+            'total': task.info.get('total', 1),
+            'status': task.info.get('status', '')
+        }
+        if 'result' in task.info:
+            response['result'] = task.info['result']
+    else:
+        # something went wrong in the background job
+        response = {
+            'state': task.state,
+            'current': 1,
+            'total': 1,
+            'status': str(task.info),  # this is the exception raised
+        }
+    return jsonify(response)

@@ -26,4 +26,5 @@ python-dotenv==0.8.2
 # celery
 redis==2.10.6
 # hiredis
-celery==4.1.0
+# celery==4.1.0
+celery==4.1.1

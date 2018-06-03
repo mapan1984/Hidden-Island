@@ -1,11 +1,12 @@
 from flask import jsonify, request, g, url_for, current_app
 from app.models import Article
 
-from app import db
+from app import db, redis
 from app.models import Permission
 from app.api import api
 from app.api.decorators import permission_required
 from app.api.errors import forbidden, ValidationError
+from app.tasks import build_index, rebuild_index
 
 
 @api.route('/articles/<int:id>')
@@ -38,7 +39,7 @@ def get_articles():
 
 @api.route('/articles/', methods=['POST'])
 @permission_required(Permission.WRITE_ARTICLES)
-def new_article():
+def edit_article():
     try:
         article = Article.from_json(request.json)
     except ValidationError as exp:
@@ -51,9 +52,7 @@ def new_article():
     article.author = g.current_user
     db.session.add(article)
     db.session.commit()
-    # XXX: 建立文章索引应在后台进行
-    # article._build_index()
-    # article._cache_similar()
+    build_index.delay(article.id)
     return (
         # 201 - 已创建
         jsonify(article.to_json()),
@@ -83,9 +82,7 @@ def sync_article():
     article.author = g.current_user
     db.session.add(article)
     db.session.commit()
-    # XXX: 建立文章索引应在后台进行
-    article._build_index()
-    article._cache_similar()
+    build_index.delay(article.id)
     return (
         # 201 - 已创建
         jsonify(article.to_json()),
@@ -96,14 +93,28 @@ def sync_article():
 
 @api.route('/articles/<int:article_id>', methods=['PUT'])
 @permission_required(Permission.WRITE_ARTICLES)
-def edit_article(article_id):
+def modify_article(article_id):
     article = Article.query.get_or_404(article_id)
     if g.current_user != article.author \
             and not g.current_user.can(Permission.ADMINISTER):
         return forbidden('Insufficient permissions')
+    # XXX: 现在只能更新body
     article.body = request.json.get('body', article.body)
     db.session.add(article)
-    # XXX: 建立文章索引应在后台进行
-    # article._build_index()
-    # article._cache_similar()
+    rebuild_index.delay(article.id)
     return jsonify(article.to_json())
+
+
+@api.route('/articles/<int:id>/similarities/')
+def get_similarities(id):
+    article = Article.query.get_or_404(id)
+    similarities = redis.zrevrange(article.name, 0, 4, withscores=True)
+    result = [
+        {
+            'article_name': similarity[0],
+            'article_url': url_for('article.article', article_name=similarity[0]),
+            'similarity': similarity[1]
+        } for similarity in similarities
+    ]
+    return jsonify(result)
+

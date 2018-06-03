@@ -7,6 +7,7 @@ from app.models import Article, Comment, Permission, Rating
 from app.decorators import permission_required, author_required
 from app.article import article as article_blueprint
 from app.article.forms import EditArticleForm
+from app.tasks import build_index, rebuild_index
 
 
 @article_blueprint.route('/<article_name>', methods=['GET'])
@@ -56,14 +57,11 @@ def edit():
             body=form.body.data,
             author=current_user._get_current_object()
         )
-        article.change_category(form.category.data)
-        article.delete_tags()
+        article.set_category(form.category.data)
         article.add_tags(form.tags.data.strip().split(' '))
         db.session.add(article)
         db.session.commit()
-        # XXX: 应在后台进行
-        article._build_index()
-        article._cache_similar()
+        build_index.delay(article.id)
         return redirect(url_for('article.article', article_name=article.name))
     return render_template('article/edit.html', form=form)
 
@@ -95,16 +93,15 @@ def modify(article_name):
             article.name = form.title.data
         article.body = form.body.data
 
-        article.change_category(form.category.data)
+        article.set_category(form.category.data)
 
         article.delete_tags()
         article.add_tags(form.tags.data.split(' '))
 
         db.session.add(article)
         db.session.commit()
-        # XXX: 应在后台进行
-        article._rebuild_index()
-        article._cache_similar()
+
+        rebuild_index.delay(article.id)
 
         flash('您的文章已经成功修改')
         return redirect(url_for('article.article', article_name=article.name))
