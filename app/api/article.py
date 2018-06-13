@@ -108,11 +108,11 @@ def modify_article(article_id):
 @api.route('/articles/<int:id>/similarities/')
 def get_similarities(id):
     article = Article.query.get_or_404(id)
-    similarities = redis.zrevrange(article.name, 0, 4, withscores=True)
+    similarities = redis.zrevrange(article.title, 0, 4, withscores=True)
     result = [
         {
-            'article_name': similarity[0],
-            'article_url': url_for('article.article', article_name=similarity[0]),
+            'title': similarity[0],
+            'url': url_for('article.article', title=similarity[0]),
             'similarity': similarity[1]
         } for similarity in similarities
     ]

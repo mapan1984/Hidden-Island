@@ -24,7 +24,7 @@
     {% for article in articles %}
       <li>
         <span>{{ article.timestamp.strftime('%Y %m %d') }}</span>
-        <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
+        <a href="{{ url_for('article.article', title=article.title) }}">{{article.title}}</a>
       </li>
     {% endfor %}
     </ul>

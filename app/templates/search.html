@@ -7,7 +7,7 @@
     <li class="article">
       <div class=".column">
         <div class="article-title">
-          <a href="{{ url_for('article.article', article_name=article.name) }}">{{ article.title }}</a>
+          <a href="{{ url_for('article.article', title=article.title) }}">{{ article.title }}</a>
         </div>
         <div class="article-date">
           {{ article.timestamp.strftime('%Y %m %d') }}
@@ -18,11 +18,11 @@
         <div class="edit">
         {% if current_user.is_authenticated %}
           {% if current_user == article.author %}
-            <a href="{{ url_for('article.modify', article_name=article.name) }}">
+            <a href="{{ url_for('article.modify', title=article.title) }}">
               <span class="label label-primary">Edit</span>
             </a>
           {% elif current_user.is_administrator %}
-            <a href="{{ url_for('article.modify', article_name=article.name) }}">
+            <a href="{{ url_for('article.modify', title=article.title) }}">
               <span class="label label-danger">Edit [Admin]</span>
             </a>
           {% endif %}

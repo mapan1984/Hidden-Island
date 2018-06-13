@@ -17,16 +17,25 @@ from app.tasks import add_together, long_task
 @admin.route('/')
 @admin_required
 def index():
-    # 获取已记录文件集合
-    loged_articles = Article.query.filter_by(author=current_user).all()
     # 获取存在的markdown文件的name集合
-    existed_md_articles = {md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)}
+    existed_md_articles = {
+        md_name.split('.')[0] for md_name in os.listdir(Config.ARTICLES_SOURCE_DIR)
+    }
+    print(existed_md_articles)
+    # 获取已记录markdown文章集合
+    loged_md_articles = {
+        article for article in Article.query.filter_by(author=current_user).all() if article.name in existed_md_articles
+    }
+    print(loged_md_articles)
     # 获取未被记录的md文件name的集合
-    not_loged_articles = (existed_md_articles
-                          - {article.name for article in loged_articles})
-    return render_template('admin/admin.html',
-                           loged_articles=loged_articles,
-                           not_loged_articles=not_loged_articles)
+    # FIXME: Markdown文件名对应文章标题？
+    not_loged_articles = existed_md_articles - {article.name for article in loged_md_articles}
+    print(not_loged_articles)
+    return render_template(
+        'admin/admin.html',
+        loged_md_articles=loged_md_articles,
+        not_loged_articles=not_loged_articles
+    )
 
 
 @admin.route('/upload', methods=['POST'])

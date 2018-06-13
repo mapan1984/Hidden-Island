@@ -16,10 +16,10 @@
         </tr>
       </thead>
       <tbody>
-        {% for article in loged_articles %}
+        {% for article in loged_md_articles %}
         <tr>
           <th scope="row">
-            <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
+            <a href="{{ url_for('article.article', title=article.title) }}">{{article.title}}</a>
           </th>
           {% if article.md5 %}
           <td>
@@ -53,9 +53,7 @@
       <tbody>
         {% for md_article in not_loged_articles %}
         <tr>
-          <th scope="row">
-            <a href="{{ url_for('article.article', article_name=md_article) }}">{{md_article}}</a>
-          </th>
+          <th scope="row">{{ md_article }}</th>
           <td>
             <a class="btn btn-primary btn-sm" href="{{ url_for('admin.render', article_name=md_article) }}" role="button">render</a>
           </td>

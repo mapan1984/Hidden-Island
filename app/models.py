@@ -341,7 +341,7 @@ class Article(db.Model):
     body_html = db.Column(db.Text)
 
     # For markdown file
-    name = db.Column(db.String(64), unique=True, index=True)  # 文件名或标题
+    name = db.Column(db.String(64), unique=True, index=True)  # 文件名(可能为标题)
     md5 = db.Column(db.String(32))
 
     # Relationship
@@ -426,16 +426,16 @@ class Article(db.Model):
             if self == other:
                 continue
             sim = similarity(self.content, other.content)
-            redis.zadd(self.name, sim, other.name)
-            redis.zadd(other.name, sim, other.name)
+            redis.zadd(self.title, sim, other.title)
+            redis.zadd(other.title, sim, other.title)
 
     def _delete_cache(self):
         logger.info(f"Delete Cache: {self.title}")
-        redis.delete(self.name)
+        redis.delete(self.title)
         for other in Article.query.all():
             if self == other:
                 continue
-            redis.zrem(other.name, self.name)
+            redis.zrem(other.title, self.title)
 
     def add_tags(self, tag_names):
         """增加文章的tags

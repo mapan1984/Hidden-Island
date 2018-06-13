@@ -10,16 +10,13 @@ from app.article.forms import EditArticleForm
 from app.tasks import build_index, rebuild_index
 
 
-@article_blueprint.route('/<article_name>', methods=['GET'])
-def article(article_name):
-    """ 显示单篇文章
-    argv:
-        article_name: 文件名(xxx)
-    """
-    article = Article.query.filter_by(name=article_name).first_or_404()
+@article_blueprint.route('/<title>', methods=['GET'])
+def article(title):
+    """ 显示单篇文章 """
+    article = Article.query.filter_by(title=title).first_or_404()
 
     # 相似文章
-    sim_articles = redis.zrevrange(article.name, 0, 4, withscores=True)
+    sim_articles = redis.zrevrange(article.title, 0, 4, withscores=True)
 
     # 获取评分情况
     ratings = article.ratings.all()
@@ -53,6 +50,7 @@ def edit():
     if form.validate_on_submit():
         article = Article(
             title=form.title.data,
+            # TODO: delete
             name=form.title.data,
             body=form.body.data,
             author=current_user._get_current_object()
@@ -62,14 +60,14 @@ def edit():
         db.session.add(article)
         db.session.commit()
         build_index.delay(article.id)
-        return redirect(url_for('article.article', article_name=article.name))
+        return redirect(url_for('article.article', title=article.title))
     return render_template('article/edit.html', form=form)
 
 
-@article_blueprint.route('/delete/<article_name>')
+@article_blueprint.route('/delete/<title>')
 @author_required
-def delete(article_name):
-    article = Article.query.filter_by(name=article_name).first_or_404()
+def delete(title):
+    article = Article.query.filter_by(title=title).first_or_404()
     if current_user != article.author \
             and not current_user.can(Permission.ADMINISTER):
         abort(403)
@@ -79,16 +77,17 @@ def delete(article_name):
                 or url_for('user.user', username=current_user.username)))
 
 
-@article_blueprint.route('/modify/<article_name>', methods=['GET', 'POST'])
+@article_blueprint.route('/modify/<title>', methods=['GET', 'POST'])
 @author_required
-def modify(article_name):
-    article = Article.query.filter_by(name=article_name).first_or_404()
+def modify(title):
+    article = Article.query.filter_by(title=title).first_or_404()
     form = EditArticleForm(article=article)
     if current_user != article.author \
             and not current_user.can(Permission.ADMINISTER):
         abort(403)
     if form.validate_on_submit():
         article.title = form.title.data
+        # TODO: delete
         if article.name is None:
             article.name = form.title.data
         article.body = form.body.data
@@ -104,7 +103,7 @@ def modify(article_name):
         rebuild_index.delay(article.id)
 
         flash('您的文章已经成功修改')
-        return redirect(url_for('article.article', article_name=article.name))
+        return redirect(url_for('article.article', title=article.title))
     form.title.data = article.title
     form.category.data = article.category.id
     form.tags.data = " ".join(tag.name for tag in article.tags)
@@ -149,4 +148,4 @@ def moderate(comment_id):
             or current_user.is_administrator:
         db.session.delete(comment)
         flash('评论已经删除')
-    return redirect(url_for('article.article', article_name=comment.article.name))
+    return redirect(url_for('article.article', title=comment.article.title))

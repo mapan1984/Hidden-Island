@@ -91,9 +91,9 @@ def build_similarity():
     """ Cache all articles similarities. """
     for a, b in combinations(Article.query.all(), 2):
         simi = similarity(a.content, b.content)
-        redis.zadd(a.name, simi, b.name)
-        redis.zadd(b.name, simi, a.name)
-        print(f'Cache similarity of {a.name} & {b.name} := {simi}')
+        redis.zadd(a.title, simi, b.title)
+        redis.zadd(b.title, simi, a.title)
+        print(f'Cache similarity of {a.title} & {b.title} := {simi}')
 
 
 app.cli.add_command(build_cli)

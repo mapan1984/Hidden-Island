@@ -22,7 +22,7 @@
       <div class="blog-post-info">
         <div class="column">
           <h2 class="blog-post-title">
-            <a href="{{ url_for('article.article', article_name=article.name) }}">{{article.title}}</a>
+            <a href="{{ url_for('article.article', title=article.title) }}">{{article.title}}</a>
           </h2>
           <p class="blog-post-date">{{ article.timestamp.strftime('%Y %m %d') }}</p>
         </div>
@@ -113,13 +113,14 @@
       <div id="similarity">
         <span class="label label-success">相似文章</span>
         <ul class="list-group">
-        {% for article_name, similarity in sim_articles %}
+        {% for title, similarity in sim_articles %}
           <li class="list-group-item">
-            <a href="{{ url_for('article.article', article_name=article_name) }}">{{article_name}}</a>
+            <a href="{{ url_for('article.article', title=title) }}">{{title}}</a>
           </li>
         {% endfor %}
         </ul>
       </div>
+
 
       <div id="toc"></div>
 
