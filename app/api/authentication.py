@@ -31,6 +31,7 @@ def auth_required(f):
             g.token_used = False
             return f(*args, **kwargs)
 
+        # FIXME: 可能会造成浏览器弹出认证窗口
         if current_user.is_anonymous:
             g.current_user = AnonymousUser()
             g.token_used = False

@@ -6,7 +6,7 @@ from app import db, redis
 from app.models import Article, Comment, Permission, Rating
 from app.decorators import permission_required, author_required
 from app.article import article as article_blueprint
-from app.article.forms import EditArticleForm
+from app.article.forms import EditArticleForm, ModifyArticleForm
 from app.tasks import build_index, rebuild_index
 
 
@@ -81,7 +81,7 @@ def delete(title):
 @author_required
 def modify(title):
     article = Article.query.filter_by(title=title).first_or_404()
-    form = EditArticleForm(article=article)
+    form = ModifyArticleForm(article=article)
     if current_user != article.author \
             and not current_user.can(Permission.ADMINISTER):
         abort(403)
