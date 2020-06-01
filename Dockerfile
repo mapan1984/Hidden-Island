@@ -1,5 +1,5 @@
 # 该image文件继承官方的python image
-FROM python:3.6.4
+FROM python:3.7.7
 
 # 工作环境变量
 ENV FLASK_APP manage:app

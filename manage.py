@@ -74,16 +74,24 @@ def build_index():
 @build_cli.command('critics')
 def build_critics():
     """ Cache all articles rattings. """
+    person_prefs = defaultdict(dict)
+    item_prefs = defaultdict(dict)
     for rating in Rating.query.all():
         username = rating.user.username
-        article_name = rating.article.name
+        title = rating.article.title
         rating_value = rating.value
+        person_prefs[username][title] = rating_value
+        item_prefs[title][username] = rating_value
 
         # person_prefs.hset(username, article_name, rating_value)
-
         # item_prefs.hset(article_name, username, rating_value)
 
-        print(f'Cache rattings of {article_name} & {username} := {rating_value}')
+        print(f'Cache rattings of {title} & {username} := {rating_value}')
+
+    with open('person_prefs.json', 'w') as fd:
+        json.dump(person_prefs, fd)
+    with open('item_prefs.json', 'w') as fd:
+        json.dump(item_prefs, fd)
 
 
 @build_cli.command('similarity')
@@ -91,8 +99,8 @@ def build_similarity():
     """ Cache all articles similarities. """
     for a, b in combinations(Article.query.all(), 2):
         simi = similarity(a.content, b.content)
-        redis.zadd(a.title, simi, b.title)
-        redis.zadd(b.title, simi, a.title)
+        redis.zadd(a.title, {b.title: simi})
+        redis.zadd(b.title, {a.title: simi})
         print(f'Cache similarity of {a.title} & {b.title} := {simi}')
 
 

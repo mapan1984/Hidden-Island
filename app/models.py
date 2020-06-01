@@ -426,8 +426,8 @@ class Article(db.Model):
             if self == other:
                 continue
             sim = similarity(self.content, other.content)
-            redis.zadd(self.title, sim, other.title)
-            redis.zadd(other.title, sim, other.title)
+            redis.zadd(self.title, {other.title: sim})
+            redis.zadd(other.title, {self.title: sim})
 
     def _delete_cache(self):
         logger.info(f"Delete Cache: {self.title}")
