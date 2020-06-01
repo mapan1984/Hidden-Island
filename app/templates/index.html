@@ -21,3 +21,16 @@
 {% endfor %}
 </ol>
 {% endblock %}
+
+{% block recommend %}
+{% if user_id %}
+<div id="recommend-articles" data-user-id="{{user_id}}"></div>
+{% endif %}
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+{% if user_id %}
+<script src="{{ url_for('static', filename='scripts/recommend.entry.js') }}"></script>
+{% endif %}
+{% endblock %}

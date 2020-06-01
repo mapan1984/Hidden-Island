@@ -1,9 +1,10 @@
 from flask import render_template, request, current_app, abort
+from flask_login import current_user
 
 from app.main import main
 # from app.utils.similarity import similarity
 from app.utils.searcher import query as searcher_query
-from app.models import Category, Tag, Article, Permission
+from app.models import Category, Tag, Article, Permission, AnonymousUser
 
 
 @main.app_context_processor
@@ -25,15 +26,20 @@ def index():
 
     archives_anchor = []
     for index, ((year, month), articls) in enumerate(Article.archives()):
-        if index > 10:
+        if index > 5:
             break
         archives_anchor.append(f'{year}-{month}')
+
+    user_id = None
+    if current_user.is_authenticated:
+        user_id = current_user.id
 
     return render_template(
         'index.html',
         articles=articles,
         pagination=pagination,
         archives_anchor=archives_anchor,
+        user_id=user_id,
     )
 
 

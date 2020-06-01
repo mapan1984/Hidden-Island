@@ -2,10 +2,14 @@ const path = require('path')
 
 module.exports = {             // __dirname 指webpack.config.js所在目录
   mode: process.env.FLASK_ENV || 'development',
-  entry: path.resolve(__dirname, 'app/static/components/blog.jsx'),  // 唯一打包入口文件
+  entry: {
+      comment: path.resolve(__dirname, 'app/static/components/blog.jsx'),
+      similarity: path.resolve(__dirname, 'app/static/components/similarity.jsx'),
+      recommend: path.resolve(__dirname, 'app/static/components/recommend.jsx'),
+  },
   output: {
     path: path.resolve(__dirname, 'app/static/scripts'),  // 打包后文件存放的地方
-    filename: 'comment.js'                  // 打包后输出文件的文件名
+    filename: '[name].entry.js'                  // 打包后输出文件的文件名
   },
   module: {
     rules: [

@@ -1,3 +1,19 @@
+FROM node:alpine as builder
+# Create the user to be used in this container
+RUN addgroup -S flasky && adduser -S -G flasky -s /bin/bash flasky
+
+# 指定工作路径为/home/flasky/web
+RUN mkdir -p /home/flasky/web
+WORKDIR /home/flasky/web
+RUN chown -R flasky:flasky /home/flasky
+RUN chmod -R 731 /home/flasky
+
+COPY app app
+COPY package.json package-lock.json webpack.config.js ./
+
+RUN npm install
+RUN npm run build
+
 # 该image文件继承官方的python image
 FROM python:3.7.7
 
@@ -26,6 +42,7 @@ RUN pip install --no-cache-dir -r requirements/docker.txt
 
 # 拷贝源码
 COPY app app
+COPY --from=builder /home/flasky/web/app/static app/static
 COPY migrations migrations
 COPY articles articles
 COPY manage.py config.py celery_worker.py boot.sh .env .flaskenv ./

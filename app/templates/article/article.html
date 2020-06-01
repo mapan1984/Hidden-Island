@@ -121,6 +121,7 @@
         </ul>
       </div>
 
+      <div id="similar-articles" data-article-id="{{article_id}}"></div>
 
       <div id="toc"></div>
 
@@ -137,6 +138,9 @@
 <script src="{{ url_for('static', filename='scripts/article.js') }}"></script>
 <script src="{{ url_for('static', filename='scripts/rating.js') }}"></script>
 <!--
-<script src="{{ url_for('static', filename='scripts/comment.js') }}"></script>
+<script src="{{ url_for('static', filename='scripts/comment.entry.js') }}"></script>
+-->
+<!--
+<script src="{{ url_for('static', filename='scripts/similarity.entry.js') }}"></script>
 -->
 {% endblock %}
