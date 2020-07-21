@@ -1,4 +1,3 @@
-""" 程序包的构造文件 """
 import os
 import logging
 
@@ -31,13 +30,8 @@ celery = Celery(
     broker=config[FLASK_ENV].CELERY_BROKER_URL,
 )
 
-redis = redis.StrictRedis(
-    password=config[FLASK_ENV].REDIS_PASSWORD,
-    host=config[FLASK_ENV].REDIS_HOST,
-    port=6379,
-    db=1,
-    decode_responses=True,
-)
+redis = redis.from_url(config[FLASK_ENV].REDIS_URL, decode_responses=True)
+
 
 
 def update_celery(celery, app):
@@ -60,14 +54,6 @@ def update_celery(celery, app):
     celery.Task = ContextTask
 
 
-def update_redis(redis, app):
-    kwargs = {
-        'password': app.config.get('REDIS_PASSWORD'),
-        'host': app.config.get('REDIS_HOST'),
-    }
-    redis.connection_pool.connection_kwargs.update(kwargs)
-
-
 def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
@@ -83,10 +69,6 @@ def create_app(config_name):
     # HACK: update celery
     global celery
     update_celery(celery, app)
-
-    # HACK: update redis
-    global redis
-    update_redis(redis, app)
 
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)

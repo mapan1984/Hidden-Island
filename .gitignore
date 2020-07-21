@@ -11,7 +11,7 @@ __pycache__
 # node
 node_modules
 
-# docker
-redis
-postgresql
-mysql/Dockerfile
+# dockers
+dockers/redis/Dockerfile
+dockers/postgresql/Dockerfile
+dockers/mysql/Dockerfile

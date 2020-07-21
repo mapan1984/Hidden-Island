@@ -5,16 +5,17 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     JSON_AS_ASCII = False
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'hard_to_guess_string')
+    SECRET_KEY = os.environ.get('SECRET_KEY', os.urandom(16))
 
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
-    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-    REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', '')
+    # redis connect url
+    REDIS_URL = os.getenv('REDIS_URL')
 
-    CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
-    CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
+    # celery
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL')
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND')
 
     # Mail_Config
     MAIL_SUBJECT_PREFIX = '[HIDDEN-ISLAND]'
@@ -57,7 +58,7 @@ class ProductionConfig(Config):
 
     @classmethod
     def init_app(cls, app_):
-        Config.init_app(app_)
+        super().init_app(app_)
 
         # email errors to the administrators
         import logging
@@ -85,7 +86,7 @@ class HerokuConfig(ProductionConfig):
 
     @classmethod
     def init_app(cls, app):
-        ProductionConfig.init_app(app)
+        super().init_app(app)
 
         # log to stderr
         import logging
@@ -96,25 +97,11 @@ class HerokuConfig(ProductionConfig):
 
 
 class DockerConfig(ProductionConfig):
-    POSTGRES_USER = os.environ.get('POSTGRES_USER')
-    POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD')
-    POSTGRES_DB = os.environ.get('POSTGRES_DB')
-    SQLALCHEMY_DATABASE_URI = 'postgresql://' + POSTGRES_USER + ':' + POSTGRES_PASSWORD + '@postgres:5432/' + POSTGRES_DB
-
-    REDIS_HOST = os.getenv('DOCKER_REDIS_HOST', 'localhost')
-    REDIS_PASSWORD = os.getenv('DOCKER_REDIS_PASSWORD', '')
-
-    CELERY_BROKER_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
-    CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:6379/0'
-
-    # MYSQL_USER = os.environ.get('MYSQL_USER')
-    # MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
-    # MYSQL_DATABASE = os.environ.get('MYSQL_DATABASE')
-    # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + MYSQL_USER + ':' + MYSQL_PASSWORD + '@mysql/' + MYSQL_DATABASE
+    """use this when deploy by docker compose"""
 
     @classmethod
     def init_app(cls, app):
-        ProductionConfig.init_app(app)
+        super().init_app(app)
 
         # log to stderr
         import logging
@@ -125,11 +112,11 @@ class DockerConfig(ProductionConfig):
 
 
 config = {
-    'development': DevelopmentConfig,
-    'testing': TestingConfig,
-    'production': ProductionConfig,
-    'heroku': HerokuConfig,
-    'docker': DockerConfig,
+    'development': DevelopmentConfig(),
+    'testing': TestingConfig(),
+    'production': ProductionConfig(),
+    'heroku': HerokuConfig(),
+    'docker': DockerConfig(),
 
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig(),
 }

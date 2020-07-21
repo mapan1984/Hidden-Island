@@ -2,17 +2,17 @@ version: '3'
 
 services:
   redis:
-    build: ./redis
+    build: ./dockers/redis
     restart: always
     ports:
       - "6379:6379"
 
   # mysql:
-  #   build: ./mysql
+  #   build: ./dockers/mysql
   #   restart: always
 
   postgres:
-    build: ./postgresql
+    build: ./dockers/postgresql
     restart: always
     volumes:
       - /var/lib/postgresql
@@ -44,7 +44,7 @@ services:
 
   nginx:
     restart: always
-    build: ./nginx
+    build: ./dockers/nginx
     ports:
       - "80:80"
     volumes:

@@ -26,7 +26,7 @@ from app.utils.similarity import similarity
 
 
 app = create_app(os.getenv('FLASK_ENV', 'default'))
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, render_as_batch=True)
 
 
 @app.shell_context_processor
