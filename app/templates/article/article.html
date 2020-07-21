@@ -67,7 +67,7 @@
       <div class="comment-form">
       {% if current_user.is_authenticated %}
         <p>请输入评论</p>
-        <form action="{{ url_for('article.comment', next='/article/'+article.name) }}" method="post" class="form" role="form">
+        <form action="{{ url_for('article.comment', next='/article/'+article.title) }}" method="post" class="form" role="form">
           <input name="user_id" type="hidden" value="{{user_id}}">
           <input name="article_id" type="hidden" value="{{article_id}}">
           <div class="form-group  required"><label class="control-label" for="body"></label>

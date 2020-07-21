@@ -6,7 +6,6 @@ from celery import Celery
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_pagedown import PageDown
 
@@ -18,7 +17,6 @@ FLASK_ENV = os.getenv('FLASK_ENV') or 'default'
 bootstrap = Bootstrap()
 moment = Moment()
 pagedown = PageDown()
-db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
@@ -32,6 +30,10 @@ celery = Celery(
 
 redis = redis.from_url(config[FLASK_ENV].REDIS_URL, decode_responses=True)
 
+# HACK: get the flask app logger
+logger = logging.getLogger('flask.app')
+
+from app.models import db
 
 
 def update_celery(celery, app):
@@ -89,7 +91,3 @@ def create_app(config_name):
     app.register_blueprint(api_blueprint, url_prefix='/api')
 
     return app
-
-
-# HACK: get the flask app logger
-logger = logging.getLogger('flask.app')
