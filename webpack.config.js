@@ -3,7 +3,7 @@ const path = require('path')
 module.exports = {             // __dirname 指webpack.config.js所在目录
   mode: process.env.FLASK_ENV || 'development',
   entry: {
-      comment: path.resolve(__dirname, 'app/static/components/blog.jsx'),
+      comment: path.resolve(__dirname, 'app/static/components/comment/index.jsx'),
       similarity: path.resolve(__dirname, 'app/static/components/similarity.jsx'),
       recommend: path.resolve(__dirname, 'app/static/components/recommend.jsx'),
   },
