@@ -1,6 +1,3 @@
-@import url(//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css);
-
-/****** Style Star Rating Widget *****/
 .rating {
   border: none;
   float: left;
@@ -11,26 +8,29 @@
 .rating > label:before {
   margin: 5px;
   font-size: 1.25em;
-  font-family: FontAwesome;
   display: inline-block;
-  content: "\f005";
+  content: "\2605";
 }
+
 /*
 .rating > .half:before {
   content: "\f089";
   position: absolute;
 }
 */
+
 .rating > label {
   color: #ddd;
   float: right;
 }
+
 /***** CSS Magic to Highlight Stars on Hover *****/
 .rating > input:checked ~ label,
 .rating:not(:checked) > label:hover,
 .rating:not(:checked) > label:hover ~ label {
   color: #FFD700;
 }
+
 /* hover previous stars in list */
 .rating > input:checked + label:hover,
 .rating > input:checked ~ label:hover,
