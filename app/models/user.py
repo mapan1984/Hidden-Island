@@ -203,7 +203,30 @@ class AnonymousUser(AnonymousUserMixin):
 login_manager.anonymous_user = AnonymousUser
 
 
-# Flask_Login要求的加载用户的回调函数
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+@login_manager.request_loader
+def load_user_from_request(request):
+    user = None
+    if request.authorization:
+        email_or_token = request.authorization.username
+        password = request.authorization.password
+        if email_or_token == '':  # 匿名用户
+            user = AnonymousUser()
+        elif password == '':  # 使用token验证
+            user = User.verify_auth_token(email_or_token)
+            if user is not None:
+                user._token_used = True
+                logger.info(f'{user.email} login in by token')
+        else:  # 使用email和password验证
+            user = User.query.filter_by(email=email_or_token).first()
+            if user:
+                if user.verify_password(password):
+                    logger.info(f'{user.email} login in by password')
+                else:
+                    user = None
+
+    return user

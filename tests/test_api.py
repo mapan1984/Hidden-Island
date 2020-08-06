@@ -100,7 +100,7 @@ class APITestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_unconfirmed_account(self):
-        # 增加一个为认证用户
+        # 增加一个未认证用户
         r = Role.query.filter_by(name='User').first()
         self.assertIsNotNone(r)
         u = User(email='john@example.com', password='cat', confirmed=False,

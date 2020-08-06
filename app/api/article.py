@@ -1,21 +1,23 @@
-from flask import jsonify, request, g, url_for, current_app
-from app.models import Article
+from flask import jsonify, request, url_for, current_app
+from flask_login import current_user
 
 from app import db, redis
-from app.models import Permission
+from app.models import Permission, Article
 from app.api import api
-from app.api.decorators import permission_required
+from app.api.decorators import permission_required, login_required
 from app.api.errors import forbidden, ValidationError
 from app.tasks import build_index, rebuild_index
 
 
 @api.route('/articles/<int:id>')
+@login_required
 def get_article(id):
     article = Article.query.get_or_404(id)
     return jsonify(article.to_json())
 
 
 @api.route('/articles/')
+@login_required
 def get_articles():
     page = request.args.get('page', 1, type=int)
     pagination = Article.query.paginate(
@@ -38,6 +40,7 @@ def get_articles():
 
 
 @api.route('/articles/', methods=['POST'])
+@login_required
 @permission_required(Permission.WRITE_ARTICLES)
 def edit_article():
     try:
@@ -49,7 +52,7 @@ def edit_article():
             jsonify({'error': str(exp)}),
             412,
         )
-    article.author = g.current_user
+    article.author = current_user
     db.session.add(article)
     db.session.commit()
     build_index.delay(article.id)
@@ -62,6 +65,7 @@ def edit_article():
 
 
 @api.route('/sync-article/', methods=['POST'])
+@login_required
 @permission_required(Permission.WRITE_ARTICLES)
 def sync_article():
     try:
@@ -79,7 +83,7 @@ def sync_article():
             jsonify({'message': 'may be article exsited.'}),
             409
         )
-    article.author = g.current_user
+    article.author = current_user
     db.session.add(article)
     db.session.commit()
     build_index.delay(article.id)
@@ -92,11 +96,12 @@ def sync_article():
 
 
 @api.route('/articles/<int:article_id>', methods=['PUT'])
+@login_required
 @permission_required(Permission.WRITE_ARTICLES)
 def modify_article(article_id):
     article = Article.query.get_or_404(article_id)
-    if g.current_user != article.author \
-            and not g.current_user.can(Permission.ADMINISTER):
+    if current_user != article.author \
+            and not current_user.can(Permission.ADMINISTER):
         return forbidden('Insufficient permissions')
     # XXX: 现在只能更新body
     article.body = request.json.get('body', article.body)

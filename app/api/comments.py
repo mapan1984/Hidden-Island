@@ -1,8 +1,10 @@
-from flask import request, jsonify, current_app, url_for, g
+from flask import request, jsonify, current_app, url_for
+from flask_login import current_user
+
 from app import db
 from app.api import api
 from app.models import Comment, Article, Permission
-from app.api.decorators import permission_required
+from app.api.decorators import permission_required, login_required
 
 
 @api.route('/comments/')
@@ -56,10 +58,11 @@ def get_article_comments(id):
 
 
 @api.route('/articles/<int:id>/comments/', methods=['POST'])
+@login_required
 @permission_required(Permission.COMMENT)
 def new_article_comment(id):
     article = Article.query.get_or_404(id)
-    request.json['author_id'] = g.current_user.id
+    request.json['author_id'] = current_user.id
     request.json['article_id'] = article.id
     comment = Comment.from_json(request.json)
     db.session.add(comment)

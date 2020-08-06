@@ -1,4 +1,4 @@
-from flask import render_template, current_app, redirect, url_for, request, flash
+from flask import render_template, current_app, redirect, url_for, request, flash, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 
 from app import db
@@ -18,9 +18,21 @@ def before_request():
     """
     if current_user.is_authenticated:
         current_user.ping()
-        if not current_user.confirmed \
-                and request.endpoint[:5] != 'auth.' \
-                and request.endpoint != 'static':
+        if (
+            not current_user.confirmed
+            and request.endpoint[:5] != 'auth.'
+            and request.endpoint != 'static'
+        ):
+            if (
+                request.accept_mimetypes.accept_json
+                and not request.accept_mimetypes.accept_html
+            ):
+                response = jsonify({
+                    'error': 'forbidden',
+                    'message': f'email not confirmed, please redirect to {url_for("auth.unconfirmed")}'
+                })
+                response.status_code = 403
+                return response
             return redirect(url_for('auth.unconfirmed'))
 
 

@@ -1,20 +1,23 @@
-import json
+# import json
 from collections import defaultdict
 
 from flask import jsonify, request, current_app, url_for
 from app.models import User, Article, Rating
 
 from app.api import api
+from app.api.decorators import login_required
 from app.utils.recommender import get_recommended_items, calculate_similar_items
 
 
 @api.route('/users/<int:id>')
+@login_required
 def get_user(id):
     user = User.query.get_or_404(id)
     return jsonify(user.to_json())
 
 
 @api.route('/users/<int:id>/articles/')
+@login_required
 def get_user_articles(id):
     user = User.query.get_or_404(id)
     page = request.args.get('page', 1, type=int)
