@@ -31,6 +31,8 @@
 {% block js %}
 {{ super() }}
 {% if user_id %}
-<script src="{{ url_for('static', filename='scripts/recommend.entry.js') }}"></script>
+<script crossorigin src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='scripts/recommend.js') }}"></script>
 {% endif %}
 {% endblock %}
