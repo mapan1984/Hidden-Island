@@ -59,9 +59,7 @@
       </div>
     </div>
 
-<!--
-    <div id="comment-box" data-user-id={{user_id}} data-article-id={{article_id}}></div>
--->
+    <div id="comment-box" data-user-id={{user_id}} data-article-id={{article_id}} user-is-authenticated={{current_user.is_authenticated}}></div>
 
     <div class="comment">
       <div class="comment-form">
@@ -138,9 +136,14 @@
 <script src="{{ url_for('static', filename='scripts/article.js') }}"></script>
 <script src="{{ url_for('static', filename='scripts/rating.js') }}"></script>
 <!--
-<script src="{{ url_for('static', filename='scripts/comment.entry.js') }}"></script>
+<script src="https://unpkg.com/react@16/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/remarkable/2.0.1/remarkable.min.js"></script>
 -->
 <!--
-<script src="{{ url_for('static', filename='scripts/similarity.entry.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='scripts/comment.js') }}"></script>
+-->
+<!--
+<script type="module" src="{{ url_for('static', filename='scripts/similarity.js') }}"></script>
 -->
 {% endblock %}
